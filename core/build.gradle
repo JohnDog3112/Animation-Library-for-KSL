@@ -1,3 +1,7 @@
+plugins {
+  id 'org.jetbrains.kotlin.plugin.serialization' version '2.1.10'
+}
+
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 eclipse.project.name = appName + '-core'
 
@@ -36,6 +40,7 @@ dependencies {
   api "net.onedaybeard.artemis:artemis-odb:$artemisOdbVersion"
   api "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
   api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion"
+  implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0'
 
   if(enableGraalNative == 'true') {
     implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"

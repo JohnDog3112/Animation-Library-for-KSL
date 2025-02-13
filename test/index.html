@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Image Gen</title>
+</head>
+
+<body>
+    <canvas></canvas>
+    <script>
+        const canvas = document.querySelector('canvas');
+        const context = canvas.getContext('2d');
+
+        canvas.width = 100;
+        canvas.height = 100;
+
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.fillStyle = '#f00';
+        context.beginPath();
+        context.arc(50, 50, 50, 0, Math.PI * 2, true);
+        context.closePath();
+        context.fill();
+    </script>
+</body>
+
+</html>
+

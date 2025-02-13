@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 buildscript {
   repositories {
     mavenCentral()
@@ -10,7 +12,6 @@ buildscript {
   }
   dependencies {
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-
   }
 }
 
@@ -55,9 +56,9 @@ configure(subprojects) {
   compileJava {
     options.incremental = true
   }
-  compileKotlin.compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_23)
-  compileTestKotlin.compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_23)
-  
+  compileKotlin.compilerOptions.jvmTarget.set(JvmTarget.JVM_23)
+  compileTestKotlin.compilerOptions.jvmTarget.set(JvmTarget.JVM_23)
+
 }
 
 subprojects {
