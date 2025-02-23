@@ -68,15 +68,15 @@ sealed class KSLAnimationObject {
 sealed class LogEvent {
     @Serializable
     @SerialName("spawn")
-    data class Spawn(val time: Int, val entityType: String, val entityId: String) : LogEvent()
+    data class Spawn(val time: Double, val entityType: String, val entityId: String) : LogEvent()
 
     @Serializable
     @SerialName("queue")
-    data class QueueEvent(val time: Int, val queueId: String, val action: String, val entityId: String) : LogEvent()
+    data class QueueEvent(val time: Double, val queueId: String, val action: String, val entityId: String) : LogEvent()
 
     @Serializable
     @SerialName("resource")
-    data class ResourceEvent(val time: Int, val resourceId: String, val action: String, val state: String) : LogEvent()
+    data class ResourceEvent(val time: Double, val resourceId: String, val action: String, val state: String) : LogEvent()
 }
 
 class KSLAnimationLog(logData: String) {
@@ -98,7 +98,7 @@ class KSLAnimationLog(logData: String) {
         val parts = line.split(": ", limit = 2)
         if (parts.size < 2) return null
 
-        val time = parts[0].toIntOrNull() ?: return null
+        val time = parts[0].toDoubleOrNull() ?: return null
         val eventParts = parts[1].split(" ")
 
         return when (eventParts[0]) {
@@ -366,14 +366,16 @@ class DemoScreen(animation: KSLAnimation, private val animationLog: KSLAnimation
             is LogEvent.QueueEvent -> {
                 println("Queue Event: ${event.action} on ${event.queueId}")
                 queues[event.queueId]?.let { queue ->
-                    if (event.action == "JOIN") {
-                        entities[event.entityId]?.let { entity ->
-                            queue.addEntity(entity)
+                    when (event.action) {
+                        "JOIN" -> {
+                            entities[event.entityId]?.let { entity ->
+                                queue.addEntity(entity)
+                            }
                         }
-                    } else if (event.action == "LEAVE") {
-                        queue.removeEntity(event.entityId)
-                    } else {
-
+                        "LEAVE" -> {
+                            queue.removeEntity(event.entityId)
+                        }
+                        else -> {}
                     }
                 }
             }
