@@ -1,0 +1,14 @@
+{
+  "objects": [
+    {
+      "id": "test_object_type",
+      "type": "object_type",
+      "image": "no_image"
+    },
+    {
+      "id": "test_station",
+      "type": "station",
+      "position": { "x": 1.1, "y": 1.3 }
+    }
+  ]
+}

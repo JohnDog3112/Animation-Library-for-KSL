@@ -1,0 +1,16 @@
+{
+  "objects": [
+    {
+      "id": "test_resource",
+      "type": "resource",
+      "position": { "x": 0, "y": 0 },
+      "states": [
+        {
+          "name": "test_state",
+          "image": "no_image",
+          "default": true
+        }
+      ]
+    }
+  ]
+}
