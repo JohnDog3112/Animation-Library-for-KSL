@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.kotcrab.vis.ui.VisUI
 import ksl.animation.Assets.assetManager
+import ksl.animation.builder.AnimationBuilderScreen
 import ksl.animation.viewer.AnimationViewerScreen
 import ktx.app.KtxGame
 import ktx.app.KtxScreen
@@ -45,7 +46,8 @@ class Main : KtxGame<KtxScreen>() {
         // all assets loaded
         if (assetManager.update()) {
             addScreen(AnimationViewerScreen())
-            setScreen<AnimationViewerScreen>()
+            addScreen(AnimationBuilderScreen())
+            setScreen<AnimationBuilderScreen>()
         }
     }
 
