@@ -30,7 +30,6 @@ class AnimationViewer {
     var ticksPerSecond = 1.0
     var playing = false
 
-    private lateinit var animation: KSLAnimation
     private lateinit var animationLog: KSLAnimationLog
     private var batch: SpriteBatch? = null
     private var renderer: ShapeRenderer? = null
@@ -38,10 +37,7 @@ class AnimationViewer {
     private var ticks = 0.0
     private var timer = 0.0
 
-    fun loadAnimation(animation: KSLAnimation, animationLog: KSLAnimationLog) {
-        this.animation = animation
-        this.animationLog = animationLog
-
+    fun loadAnimationSetup(animation: KSLAnimation) {
         // load images
         animation.objects.filterIsInstance<KSLAnimationObject.Image>().forEach {
             try {
@@ -80,6 +76,10 @@ class AnimationViewer {
         }
     }
 
+    fun loadAnimationLog(animationLog: KSLAnimationLog) {
+        this.animationLog = animationLog
+    }
+
     fun render(delta: Float) {
         if (batch == null) batch = SpriteBatch()
         if (renderer == null) renderer = ShapeRenderer()
@@ -94,8 +94,8 @@ class AnimationViewer {
             timer -= 1 / ticksPerSecond
             ticks++
 
-            while (currentEvent < animationLog.getEvents().size) {
-                val event = animationLog.getEvents()[currentEvent]
+            while (currentEvent < animationLog.events.size) {
+                val event = animationLog.events[currentEvent]
                 if (event.getTime() > ticks) break
 
                 event.execute()
@@ -104,10 +104,28 @@ class AnimationViewer {
         }
 
         // update any moving objects
+        val movementIterator = movements.iterator()
+        while (movementIterator.hasNext()) {
+            val movement = movementIterator.next()
+            if (playing) movement.elapsedTime += delta / ticksPerSecond
+            val amount = movement.elapsedTime / movement.duration
 
+            if (amount >= 1) {
+                movementIterator.remove()
+            } else {
+                val kslObject = objects[movement.objectId]
+                if (kslObject != null) {
+                    kslObject.position = ((movement.endPosition - movement.startPosition) * amount) + movement.startPosition
+                    println("${movement.objectId} - ${kslObject.position} - $movement")
+                } else {
+                    throw RuntimeException("Object ${movement.objectId} not found")
+                }
+            }
+        }
 
-        queues.forEach { it.value.drawQueue(batch!!, renderer!!, this) }
-        resources.forEach { it.value.drawResource(batch!!, this) }
+        objects.forEach { it.value.render(batch!!, this) }
+        queues.forEach { it.value.render(batch!!, renderer!!, this) }
+        resources.forEach { it.value.render(batch!!, this) }
     }
 
     fun dispose() {

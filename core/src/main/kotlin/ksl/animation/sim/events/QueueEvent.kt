@@ -1,16 +1,19 @@
 package ksl.animation.sim.events
 
+import ksl.animation.sim.KSLAnimationLog
 import ksl.animation.sim.KSLLogEvent
 import ksl.animation.sim.KSLLogParsingException
 import ksl.animation.util.KSLAnimationGlobals
 import ksl.animation.viewer.AnimationViewer
 
-class QueueEvent(time: Double, viewer: AnimationViewer) : KSLLogEvent(time, viewer) {
+class QueueEvent(time: Double, viewer: AnimationViewer, animationLog: KSLAnimationLog) : KSLLogEvent(time, viewer, animationLog) {
     companion object {
         const val KEYWORD_QUEUE = "QUEUE"
         const val KEYWORD_JOIN = "JOIN"
         const val KEYWORD_LEAVE = "LEAVE"
     }
+
+    override var containsObjects = true
 
     lateinit var queueId: String
     lateinit var objectId: String
@@ -28,6 +31,9 @@ class QueueEvent(time: Double, viewer: AnimationViewer) : KSLLogEvent(time, view
             if (action != KEYWORD_JOIN && action != KEYWORD_LEAVE) {
                 throw KSLLogParsingException("Unknown queue action")
             }
+
+            animationLog.objects.add(objectId)
+
             return true
         }
         return false
@@ -48,5 +54,9 @@ class QueueEvent(time: Double, viewer: AnimationViewer) : KSLLogEvent(time, view
         } else {
             throw RuntimeException("Queue $queueId not found")
         }
+    }
+
+    override fun involvesObject(objectId: String): Boolean {
+        return this.objectId == objectId
     }
 }

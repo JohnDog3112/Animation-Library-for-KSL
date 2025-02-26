@@ -1,12 +1,13 @@
 package ksl.animation.sim.events
 
+import ksl.animation.sim.KSLAnimationLog
 import ksl.animation.sim.KSLLogEvent
 import ksl.animation.sim.KSLLogParsingException
 import ksl.animation.util.KSLAnimationGlobals
 import ksl.animation.util.Position
 import ksl.animation.viewer.AnimationViewer
 
-class MoveEvent(time: Double, viewer: AnimationViewer) : KSLLogEvent(time, viewer) {
+class MoveEvent(time: Double, viewer: AnimationViewer, animationLog: KSLAnimationLog) : KSLLogEvent(time, viewer, animationLog) {
     companion object {
         const val KEYWORD_MOVE = "MOVE"
         const val KEYWORD_AS = "AS"
@@ -15,6 +16,8 @@ class MoveEvent(time: Double, viewer: AnimationViewer) : KSLLogEvent(time, viewe
         const val EASE_OUT_FUNCTION = "EASE_OUT"
         const val EASE_IN_OUT_FUNCTION = "EASE_IN_OUT"
     }
+
+    override var containsObjects = true
 
     lateinit var objectId: String
     lateinit var position: Position
@@ -46,6 +49,9 @@ class MoveEvent(time: Double, viewer: AnimationViewer) : KSLLogEvent(time, viewe
                     }
                 }
             }
+
+            animationLog.objects.add(objectId)
+
             return true
         }
         return false
@@ -61,13 +67,17 @@ class MoveEvent(time: Double, viewer: AnimationViewer) : KSLLogEvent(time, viewe
             throw RuntimeException("Object $objectId not found")
         }
     }
+
+    override fun involvesObject(objectId: String): Boolean {
+        return this.objectId == objectId
+    }
 }
 
 data class MoveQuery(
     val objectId: String,
     val startPosition: Position,
     val endPosition: Position,
-    val elapsedTime: Double,
+    var elapsedTime: Double,
     val duration: Double,
     val movementFunction: String
 )

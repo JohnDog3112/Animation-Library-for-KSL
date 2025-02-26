@@ -10,7 +10,19 @@ import ksl.animation.setup.KSLAnimation
 import ksl.animation.setup.KSLAnimationObject
 
 @Serializable
-data class Position(val x: Double, val y: Double)
+data class Position(val x: Double, val y: Double) {
+    operator fun plus(other: Position): Position {
+        return Position(x + other.x, y + other.y)
+    }
+
+    operator fun minus(other: Position): Position {
+        return Position(x - other.x, y - other.y)
+    }
+
+    operator fun times(scalar: Double): Position {
+        return Position(x * scalar, y * scalar)
+    }
+}
 
 @OptIn(ExperimentalSerializationApi::class)
 fun parseJsonToAnimation(content: String): KSLAnimation {

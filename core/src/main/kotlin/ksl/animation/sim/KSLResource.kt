@@ -17,7 +17,7 @@ class KSLResource(states: List<ResourceState>, private val position: Position = 
         currentState = state
     }
 
-    fun drawResource(batch: SpriteBatch, viewer: AnimationViewer) {
+    fun render(batch: SpriteBatch, viewer: AnimationViewer) {
         val texture = resourceStates.getImage(currentState, viewer.images)
         batch.begin()
         batch.draw(texture, (viewer.originX + position.x * viewer.screenUnit).toFloat(), (viewer.originY + position.y * viewer.screenUnit).toFloat(), (width * viewer.screenUnit).toFloat(), (height * viewer.screenUnit).toFloat())

@@ -1,5 +1,6 @@
 package ksl.animation.sim.events
 
+import ksl.animation.sim.KSLAnimationLog
 import ksl.animation.sim.KSLLogEvent
 import ksl.animation.sim.KSLLogParsingException
 import ksl.animation.sim.KSLObject
@@ -7,13 +8,15 @@ import ksl.animation.util.KSLAnimationGlobals
 import ksl.animation.util.Position
 import ksl.animation.viewer.AnimationViewer
 
-class ObjectEvent(time: Double, viewer: AnimationViewer) : KSLLogEvent(time, viewer) {
+class ObjectEvent(time: Double, viewer: AnimationViewer, animationLog: KSLAnimationLog) : KSLLogEvent(time, viewer, animationLog) {
     companion object {
         const val KEYWORD_ADD = "ADD"
         const val KEYWORD_REMOVE = "REMOVE"
         const val KEYWORD_AT = "AT"
         const val KEYWORD_SIZED = "SIZED"
     }
+
+    override var containsObjects = true
 
     lateinit var objectTypeId: String
     lateinit var objectId: String
@@ -62,6 +65,8 @@ class ObjectEvent(time: Double, viewer: AnimationViewer) : KSLLogEvent(time, vie
                 }
                 else -> throw KSLLogParsingException("Unknown action $action")
             }
+
+            animationLog.objects.add(objectId)
             return true
         }
         return false
@@ -90,5 +95,9 @@ class ObjectEvent(time: Double, viewer: AnimationViewer) : KSLLogEvent(time, vie
                 throw RuntimeException("Object $objectId not found")
             }
         }
+    }
+
+    override fun involvesObject(objectId: String): Boolean {
+        return this.objectId == objectId
     }
 }

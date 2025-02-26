@@ -14,6 +14,7 @@ import com.kotcrab.vis.ui.widget.file.FileChooser
 import com.kotcrab.vis.ui.widget.file.FileChooser.DefaultFileIconProvider
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter
 import com.kotcrab.vis.ui.widget.file.StreamingFileChooserListener
+import ksl.animation.Main
 import ksl.animation.setup.KSLAnimation
 import ksl.animation.sim.KSLAnimationLog
 import ksl.animation.util.parseJsonToAnimation
@@ -26,7 +27,7 @@ import java.io.File
 import java.util.zip.ZipFile
 
 
-class AnimationViewerScreen : KtxScreen, InputAdapter() {
+class AnimationViewerScreen() : KtxScreen, InputAdapter() {
     private val stage: Stage = Stage(ScreenViewport())
     private val playbackWindow: PlaybackWindow = PlaybackWindow({ animationViewer.playing = true }, { animationViewer.playing = false }, { tps -> animationViewer.ticksPerSecond = tps })
     private val fileChooser: FileChooser = FileChooser(FileChooser.Mode.OPEN)
@@ -62,10 +63,9 @@ class AnimationViewerScreen : KtxScreen, InputAdapter() {
     }
 
     private fun loadAnimation(setupFile: String, simFile: String) {
-        animation = parseJsonToAnimation(setupFile)
+        animationViewer.loadAnimationSetup(parseJsonToAnimation(setupFile))
         animationLog = KSLAnimationLog(simFile, animationViewer)
 
-        animationViewer.loadAnimation(animation, animationLog)
         animationLoaded = true
     }
 
@@ -153,7 +153,7 @@ class AnimationViewerScreen : KtxScreen, InputAdapter() {
 
     override fun dispose() {
         stage.dispose()
-        playbackWindow.dispose()
         animationViewer.dispose()
+        super.dispose()
     }
 }

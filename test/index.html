@@ -5,6 +5,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Image Gen</title>
+    <style>
+        body {
+            background-color: gray;
+        }
+    </style>
 </head>
 
 <body>
@@ -13,14 +18,31 @@
         const canvas = document.querySelector('canvas');
         const context = canvas.getContext('2d');
 
-        canvas.width = 100;
-        canvas.height = 100;
+        canvas.width = 50;
+        canvas.height = 50;
 
         context.clearRect(0, 0, canvas.width, canvas.height);
-        context.fillStyle = '#f00';
+
+        const size = 30, radius = 5;
+        const height = size * Math.sqrt(3) / 2; // Height of an equilateral triangle
+        const ax = 25, ay = 25 + height / 2;
+        const bx = 25 + size, by = 25;
+        const cx = 25 + size, cy = 25 + height;
+
         context.beginPath();
-        context.arc(50, 50, 50, 0, Math.PI * 2, true);
+        context.moveTo(ax + radius, ay);
+
+        context.lineTo(bx - radius, by);
+        context.quadraticCurveTo(bx, by, bx, by + radius);
+
+        context.lineTo(cx, cy - radius);
+        context.quadraticCurveTo(cx, cy, cx - radius, cy);
+
+        context.lineTo(ax + radius, ay);
+        context.quadraticCurveTo(ax, ay, ax, ay + radius);
+
         context.closePath();
+        context.fillStyle = "#fff";
         context.fill();
     </script>
 </body>

@@ -1,5 +1,0 @@
-0: SPAWN "test_object" AS "object_1" AT "spawn"
-10: MOVE "object_1" TO "other" AS LINEAR
-20: MOVE "object_1" TO "spawn" AS EASE_IN
-30: MOVE "object_1" TO "other" AS EASE_OUT
-40: MOVE "object_1" TO "spawn" AS EASE_IN_OUT

@@ -1,7 +1,8 @@
 package ksl.animation.viewer
 
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.TextureAtlas
+import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
@@ -12,12 +13,15 @@ import com.kotcrab.vis.ui.widget.VisImageButton
 import com.kotcrab.vis.ui.widget.VisWindow
 import com.kotcrab.vis.ui.widget.spinner.SimpleFloatSpinnerModel
 import com.kotcrab.vis.ui.widget.spinner.Spinner
+import ksl.animation.Assets.assetManager
+import ksl.animation.Assets.getUITexture
 import ktx.actors.onChange
 import ktx.actors.onClick
+import ktx.assets.getAsset
 
 class PlaybackWindow(onPlay: () -> Unit, onPause: () -> Unit, onSpeedChange: (tps: Double) -> Unit) : VisWindow("Playback") {
-    private val playTexture = Texture(Gdx.files.internal("img/play.png"))
-    private val pauseTexture = Texture(Gdx.files.internal("img/pause.png"))
+    private var playTexture: TextureRegion = getUITexture(0, 0)
+    private var pauseTexture: TextureRegion = getUITexture(1, 0)
     private var playing = false
     private var open = true
 
@@ -74,10 +78,5 @@ class PlaybackWindow(onPlay: () -> Unit, onPause: () -> Unit, onSpeedChange: (tp
         touchable = Touchable.enabled;
         addAction(Actions.sequence(Actions.fadeIn(0.3f, Interpolation.fade)))
         return this;
-    }
-
-    fun dispose() {
-        playTexture.dispose()
-        pauseTexture.dispose()
     }
 }

@@ -22,7 +22,7 @@ class KSLQueue(private val startPosition: Position, private val endPosition: Pos
         objects.remove(kslObject.id)
     }
 
-    fun drawQueue(batch: SpriteBatch, shapeRenderer: ShapeRenderer, viewer: AnimationViewer) {
+    fun render(batch: SpriteBatch, shapeRenderer: ShapeRenderer, viewer: AnimationViewer) {
         // draw queue line
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         shapeRenderer.color = Color.BLACK
