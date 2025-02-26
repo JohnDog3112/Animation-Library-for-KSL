@@ -1,6 +1,5 @@
 package ksl.animation.sim
 
-import ksl.animation.sim.events.QueueEvent
 import ksl.animation.sim.events.ResourceEvent
 import ksl.animation.util.setupAnimationLogTest
 import ksl.animation.viewer.AnimationViewer

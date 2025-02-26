@@ -1,18 +1,17 @@
 package ksl.animation.viewer
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import ksl.animation.setup.KSLAnimation
 import ksl.animation.setup.KSLAnimationObject
-import ksl.animation.sim.KSLAnimationLog
-import ksl.animation.sim.KSLObject
-import ksl.animation.sim.KSLQueue
-import ksl.animation.sim.KSLResource
+import ksl.animation.sim.*
 import ksl.animation.sim.events.MoveQuery
 import java.util.*
+import kotlin.math.abs
 
 class AnimationViewer {
     val images = mutableMapOf<String, Texture>()
@@ -27,10 +26,10 @@ class AnimationViewer {
     var originX = 0.0
     var originY = 0.0
 
+    lateinit var animationLog: KSLAnimationLog
     var ticksPerSecond = 1.0
     var playing = false
 
-    private lateinit var animationLog: KSLAnimationLog
     private var batch: SpriteBatch? = null
     private var renderer: ShapeRenderer? = null
     private var currentEvent = 0
@@ -80,6 +79,13 @@ class AnimationViewer {
         this.animationLog = animationLog
     }
 
+    fun runInstantEvents() {
+        // execute events that happen instantly
+        this.animationLog.events.filter { abs(it.getTime() - this.animationLog.startTime) < 0.0001 }.forEach { event ->
+            event.execute()
+        }
+    }
+
     fun render(delta: Float) {
         if (batch == null) batch = SpriteBatch()
         if (renderer == null) renderer = ShapeRenderer()
@@ -104,19 +110,17 @@ class AnimationViewer {
         }
 
         // update any moving objects
-        val movementIterator = movements.iterator()
-        while (movementIterator.hasNext()) {
-            val movement = movementIterator.next()
-            if (playing) movement.elapsedTime += delta / ticksPerSecond
-            val amount = movement.elapsedTime / movement.duration
+        if (playing) {
+            val movementIterator = movements.iterator()
+            while (movementIterator.hasNext()) {
+                val movement = movementIterator.next()
+                movement.elapsedTime += delta * ticksPerSecond
+                if (movement.movementFunction == MovementFunctions.INSTANT_FUNCTION) movement.elapsedTime = movement.duration
 
-            if (amount >= 1) {
-                movementIterator.remove()
-            } else {
                 val kslObject = objects[movement.objectId]
                 if (kslObject != null) {
-                    kslObject.position = ((movement.endPosition - movement.startPosition) * amount) + movement.startPosition
-                    println("${movement.objectId} - ${kslObject.position} - $movement")
+                    if (kslObject.applyMovement(movement)) movementIterator.remove()
+                    else break
                 } else {
                     throw RuntimeException("Object ${movement.objectId} not found")
                 }
@@ -126,6 +130,17 @@ class AnimationViewer {
         objects.forEach { it.value.render(batch!!, this) }
         queues.forEach { it.value.render(batch!!, renderer!!, this) }
         resources.forEach { it.value.render(batch!!, this) }
+
+        // debug render stations
+        stations.forEach {
+            val x = it.value.position.x * screenUnit + originX
+            val y = it.value.position.y * screenUnit + originY
+
+            renderer!!.begin(ShapeRenderer.ShapeType.Filled)
+            renderer!!.color = Color.RED
+            renderer!!.rect((x - 10).toFloat(), (y - 10).toFloat(), 20f, 20f)
+            renderer!!.end()
+        }
     }
 
     fun dispose() {

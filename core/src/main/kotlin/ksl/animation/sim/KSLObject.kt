@@ -2,6 +2,7 @@ package ksl.animation.sim
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import ksl.animation.setup.KSLAnimationObject
+import ksl.animation.sim.events.MoveQuery
 import ksl.animation.util.Position
 import ksl.animation.viewer.AnimationViewer
 
@@ -32,6 +33,17 @@ class KSLObject(
             }
         } else {
             throw RuntimeException("Base object ${this.objectType} is not found")
+        }
+    }
+
+    fun applyMovement(movement: MoveQuery): Boolean {
+        val amount = movement.elapsedTime / movement.duration
+        if (amount >= 1) {
+            position = movement.endPosition
+            return true
+        } else {
+            position = ((movement.endPosition - movement.startPosition) * MovementFunctions.applyFunction(movement.movementFunction, amount)) + movement.startPosition
+            return false
         }
     }
 }

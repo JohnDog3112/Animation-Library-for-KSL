@@ -6,7 +6,7 @@ import ksl.animation.sim.KSLLogParsingException
 import ksl.animation.util.KSLAnimationGlobals
 import ksl.animation.viewer.AnimationViewer
 
-class QueueEvent(time: Double, viewer: AnimationViewer, animationLog: KSLAnimationLog) : KSLLogEvent(time, viewer, animationLog) {
+class QueueEvent(time: Double, viewer: AnimationViewer) : KSLLogEvent(time, viewer) {
     companion object {
         const val KEYWORD_QUEUE = "QUEUE"
         const val KEYWORD_JOIN = "JOIN"
@@ -22,17 +22,15 @@ class QueueEvent(time: Double, viewer: AnimationViewer, animationLog: KSLAnimati
     // QUEUE <QUEUE ID> JOIN <OBJECT ID>
     // QUEUE <QUEUE ID> LEAVE <OBJECT ID>
     override fun parse(tokens: List<String>): Boolean {
-        var currentToken = 0
-        if (tokens[currentToken++] == KEYWORD_QUEUE) {
-            queueId = tokens[currentToken++].trim('"')
-            action = tokens[currentToken++]
-            objectId = tokens[currentToken].trim('"')
+        startParsing(tokens)
+        if (parseKeyword() == KEYWORD_QUEUE) {
+            queueId = parseQueueId()
+            action = parseKeyword()
+            objectId = parseObjectId()
 
             if (action != KEYWORD_JOIN && action != KEYWORD_LEAVE) {
                 throw KSLLogParsingException("Unknown queue action")
             }
-
-            animationLog.objects.add(objectId)
 
             return true
         }
@@ -45,14 +43,9 @@ class QueueEvent(time: Double, viewer: AnimationViewer, animationLog: KSLAnimati
         val queue = viewer.queues[queueId]
         val kslObject = viewer.objects[objectId] ?: throw RuntimeException("Object $objectId not found")
 
-        if (queue != null) {
-            when (action) {
-                KEYWORD_JOIN -> queue.addObject(kslObject)
-                KEYWORD_LEAVE -> queue.removeObject(kslObject)
-                else -> throw RuntimeException("Unknown queue action")
-            }
-        } else {
-            throw RuntimeException("Queue $queueId not found")
+        when (action) {
+            KEYWORD_JOIN -> queue!!.addObject(kslObject)
+            KEYWORD_LEAVE -> queue!!.removeObject(kslObject)
         }
     }
 

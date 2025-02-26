@@ -5,7 +5,7 @@ import ksl.animation.sim.KSLLogEvent
 import ksl.animation.util.KSLAnimationGlobals
 import ksl.animation.viewer.AnimationViewer
 
-class ResourceEvent(time: Double, viewer: AnimationViewer, animationLog: KSLAnimationLog) : KSLLogEvent(time, viewer, animationLog) {
+class ResourceEvent(time: Double, viewer: AnimationViewer) : KSLLogEvent(time, viewer) {
     companion object {
         const val KEYWORD_RESOURCE = "RESOURCE"
     }
@@ -13,13 +13,13 @@ class ResourceEvent(time: Double, viewer: AnimationViewer, animationLog: KSLAnim
     lateinit var resourceId: String
     lateinit var newState: String
 
-    // RESOURCE <RESOURCE ID> SET STATE <NEW STATE>
+    // RESOURCE "RESOURCE ID" SET STATE "NEW STATE"
     override fun parse(tokens: List<String>): Boolean {
-        var currentToken = 0
-        if (tokens[currentToken++] == KEYWORD_RESOURCE) {
-            resourceId = tokens[currentToken++].trim('"')
-            currentToken += 2
-            newState = tokens[currentToken].trim('"')
+        startParsing(tokens)
+        if (parseKeyword() == KEYWORD_RESOURCE) {
+            resourceId = parseResourceId()
+            next(2) // SET STATE
+            newState = parseString()
 
             return true
         }

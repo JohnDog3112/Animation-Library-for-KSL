@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 
 class ObjectEventTest {
     companion object {
-        const val TEST_OBJECT_TYPE = "test_base_object"
+        const val TEST_OBJECT_TYPE = "test_object_type"
         const val TEST_OBJECT_ID = "test_object"
         const val TEST_WIDTH = 1.5
         const val TEST_HEIGHT = 1.7

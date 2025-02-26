@@ -1,14 +1,13 @@
 package ksl.animation.sim
 
-import ksl.animation.sim.events.MoveEvent
-import ksl.animation.sim.events.QueueEvent
-import ksl.animation.sim.events.ResourceEvent
-import ksl.animation.sim.events.ObjectEvent
+import ksl.animation.sim.events.*
 import ksl.animation.viewer.AnimationViewer
 
 class KSLAnimationLog(logData: String, private val viewer: AnimationViewer) {
     val events: List<KSLLogEvent>
     val objects = mutableSetOf<String>()
+    var startTime = 0.0
+    var endTime = 0.0
 
     init {
         viewer.loadAnimationLog(this)
@@ -16,6 +15,8 @@ class KSLAnimationLog(logData: String, private val viewer: AnimationViewer) {
         events = logData.lines()
             .mapNotNull { parseLogLine(it) }
             .sortedBy { it.getTime() }
+
+        viewer.runInstantEvents()
 
         // postprocess events for stuff like moving
         val lastEvent = mutableMapOf<String, KSLLogEvent>()
@@ -43,10 +44,11 @@ class KSLAnimationLog(logData: String, private val viewer: AnimationViewer) {
         val tokens = parts[1].split(" ")
 
         return listOf(
-            ObjectEvent(time, viewer, this),
-            QueueEvent(time, viewer, this),
-            ResourceEvent(time, viewer, this),
-            MoveEvent(time, viewer, this)
+            ObjectEvent(time, viewer),
+            QueueEvent(time, viewer),
+            ResourceEvent(time, viewer),
+            MoveEvent(time, viewer),
+            AnimationEvent(time, viewer)
         ).find { it.parse(tokens) }
     }
 }
