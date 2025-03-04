@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Image Gen</title>
+    <style>
+        body {
+            background-color: gray;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas></canvas>
+    <script>
+        const canvas = document.querySelector('canvas');
+        const context = canvas.getContext('2d');
+
+        canvas.width = 50;
+        canvas.height = 50;
+
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        const size = 30, radius = 5;
+        const height = size * Math.sqrt(3) / 2; // Height of an equilateral triangle
+        const ax = 25, ay = 25 + height / 2;
+        const bx = 25 + size, by = 25;
+        const cx = 25 + size, cy = 25 + height;
+
+        context.beginPath();
+        context.moveTo(ax + radius, ay);
+
+        context.lineTo(bx - radius, by);
+        context.quadraticCurveTo(bx, by, bx, by + radius);
+
+        context.lineTo(cx, cy - radius);
+        context.quadraticCurveTo(cx, cy, cx - radius, cy);
+
+        context.lineTo(ax + radius, ay);
+        context.quadraticCurveTo(ax, ay, ax, ay + radius);
+
+        context.closePath();
+        context.fillStyle = "#fff";
+        context.fill();
+    </script>
+</body>
+
+</html>
+

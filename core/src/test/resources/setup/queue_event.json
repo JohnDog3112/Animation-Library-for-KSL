@@ -1,0 +1,20 @@
+{
+  "objects": [
+    {
+      "id": "test_object_type",
+      "type": "object_type",
+      "image": "no_image"
+    },
+    {
+      "id": "test_object",
+      "type": "object",
+      "object_type": "test_object_type"
+    },
+    {
+      "id": "test_queue",
+      "type": "queue",
+      "start_position": { "x": -2, "y": 0 },
+      "end_position": { "x": 1, "y": 0 }
+    }
+  ]
+}
