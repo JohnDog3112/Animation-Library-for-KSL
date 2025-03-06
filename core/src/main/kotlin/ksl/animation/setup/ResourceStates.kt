@@ -8,7 +8,7 @@ data class ResourceState(val name: String, val image: String, val default: Boole
 
 @Serializable
 class ResourceStates(private val states: List<ResourceState>) {
-    private val defaultState: ResourceState;
+    val defaultState: ResourceState;
 
     init {
         val default = states.find { it.default }

@@ -63,7 +63,7 @@ class ObjectEvent(time: Double, viewer: AnimationViewer) : KSLLogEvent(time, vie
         }
 
         if (action == KEYWORD_ADD) {
-            viewer.objects[objectId] = KSLObject(objectId, objectTypeId, position, width, height)
+            viewer.objects[objectId] = KSLObject(objectId, position, objectTypeId, width, height)
         } else if (action == KEYWORD_REMOVE) {
             val kslObject = viewer.objects[objectId]
 

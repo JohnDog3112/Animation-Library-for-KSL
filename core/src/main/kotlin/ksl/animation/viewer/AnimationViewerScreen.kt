@@ -8,17 +8,20 @@ import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.kotcrab.vis.ui.FocusManager
+import com.kotcrab.vis.ui.VisUI
 import com.kotcrab.vis.ui.widget.MenuBar
+import com.kotcrab.vis.ui.widget.VisLabel
 import com.kotcrab.vis.ui.widget.VisTable
 import com.kotcrab.vis.ui.widget.file.FileChooser
 import com.kotcrab.vis.ui.widget.file.FileChooser.DefaultFileIconProvider
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter
 import com.kotcrab.vis.ui.widget.file.StreamingFileChooserListener
-import ksl.animation.Main
+import ksl.animation.builder.AnimationBuilderScreen
 import ksl.animation.setup.KSLAnimation
 import ksl.animation.sim.KSLAnimationLog
 import ksl.animation.util.parseJsonToAnimation
 import ktx.actors.onClick
+import ktx.app.KtxGame
 import ktx.app.KtxScreen
 import ktx.app.clearScreen
 import ktx.scene2d.vis.menu
@@ -26,13 +29,11 @@ import ktx.scene2d.vis.menuItem
 import java.io.File
 import java.util.zip.ZipFile
 
-
-class AnimationViewerScreen() : KtxScreen, InputAdapter() {
+class AnimationViewerScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, InputAdapter() {
     private val stage: Stage = Stage(ScreenViewport())
     private val playbackWindow: PlaybackWindow = PlaybackWindow({ animationViewer.playing = true }, { animationViewer.playing = false }, { tps -> animationViewer.ticksPerSecond = tps })
     private val fileChooser: FileChooser = FileChooser(FileChooser.Mode.OPEN)
-    private val menuBar: MenuBar = MenuBar()
-    private val animationViewer: AnimationViewer = AnimationViewer()
+    private var animationViewer: AnimationViewer = AnimationViewer()
     private lateinit var animation: KSLAnimation
     private lateinit var animationLog: KSLAnimationLog
     private var animationLoaded = false
@@ -63,6 +64,8 @@ class AnimationViewerScreen() : KtxScreen, InputAdapter() {
     }
 
     private fun loadAnimation(setupFile: String, simFile: String) {
+        animationViewer = AnimationViewer()
+
         animationViewer.loadAnimationSetup(parseJsonToAnimation(setupFile))
         animationLog = KSLAnimationLog(simFile, animationViewer)
 
@@ -78,7 +81,12 @@ class AnimationViewerScreen() : KtxScreen, InputAdapter() {
         val root = VisTable()
         root.setFillParent(true)
 
+        val menuBar = MenuBar()
         root.add(menuBar.table).expandX().fillX().row()
+        val modeTable = VisTable()
+        modeTable.background = VisUI.getSkin().getDrawable("separator-menu")
+        modeTable.add(VisLabel("Viewer Mode"))
+        root.add(modeTable).fillX().row()
         root.add().expand().fill()
 
         val fileMenu = menuBar.menu("File")
@@ -87,12 +95,31 @@ class AnimationViewerScreen() : KtxScreen, InputAdapter() {
             this@AnimationViewerScreen.stage.addActor(fileChooser.fadeIn())
         }
 
-        menuBar.menu("Edit")
+        val switchToBuilderItem = fileMenu.menuItem("Switch to Builder...")
+        switchToBuilderItem.onClick {
+            this@AnimationViewerScreen.game.setScreen<AnimationBuilderScreen>()
+        }
+
         val viewMenu = menuBar.menu("View")
         val playbackWindowItem = viewMenu.menuItem("Toggle Playback Window...")
         playbackWindowItem.setShortcut(Input.Keys.CONTROL_LEFT, Input.Keys.P)
         playbackWindowItem.onClick {
             this@AnimationViewerScreen.playbackWindow.toggle()
+        }
+
+        val showGridLinesItem = viewMenu.menuItem("Toggle Grid Lines...")
+        showGridLinesItem.onClick {
+            this@AnimationViewerScreen.animationViewer.showGridLines = !this@AnimationViewerScreen.animationViewer.showGridLines
+        }
+
+        val showStationsItem = viewMenu.menuItem("Toggle Station Rendering...")
+        showStationsItem.onClick {
+            this@AnimationViewerScreen.animationViewer.showStations = !this@AnimationViewerScreen.animationViewer.showStations
+        }
+
+        val showIdsItem = viewMenu.menuItem("Toggle ID Rendering...")
+        showIdsItem.onClick {
+            this@AnimationViewerScreen.animationViewer.showIds = !this@AnimationViewerScreen.animationViewer.showIds
         }
 
         stage.addActor(root)

@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import ksl.animation.Main
 import ksl.animation.setup.KSLAnimation
 import ksl.animation.setup.KSLAnimationObject
 import ksl.animation.sim.*
@@ -19,19 +20,22 @@ class AnimationViewer {
     val queues = mutableMapOf<String, KSLQueue>()
     val resources = mutableMapOf<String, KSLResource>()
     val objectTypes = mutableMapOf<String, KSLAnimationObject.ObjectType>()
-    val stations = mutableMapOf<String, KSLAnimationObject.Station>()
+    val stations = mutableMapOf<String, KSLStation>()
     val movements = mutableListOf<MoveQuery>()
 
     var screenUnit = 0.0
     var originX = 0.0
     var originY = 0.0
+    var showGridLines = true
+    var showStations = false
+    var showIds = false
 
     lateinit var animationLog: KSLAnimationLog
     var ticksPerSecond = 1.0
     var playing = false
 
-    private var batch: SpriteBatch? = null
-    private var renderer: ShapeRenderer? = null
+    var spriteBatch: SpriteBatch? = null
+    var shapeRenderer: ShapeRenderer? = null
     private var currentEvent = 0
     private var ticks = 0.0
     private var timer = 0.0
@@ -61,7 +65,7 @@ class AnimationViewer {
 
         // load stations
         animation.objects.filterIsInstance<KSLAnimationObject.Station>().forEach {
-            stations[it.id] = it
+            stations[it.id] = KSLStation(it)
         }
 
         // load queues
@@ -87,12 +91,8 @@ class AnimationViewer {
     }
 
     fun render(delta: Float) {
-        if (batch == null) batch = SpriteBatch()
-        if (renderer == null) renderer = ShapeRenderer()
-
-        screenUnit = Gdx.graphics.width / 10.0
-        originX = Gdx.graphics.width / 2.0
-        originY = Gdx.graphics.height / 2.0
+        if (spriteBatch == null) spriteBatch = SpriteBatch()
+        if (shapeRenderer == null) shapeRenderer = ShapeRenderer()
 
         if (playing) timer += delta
 
@@ -120,32 +120,36 @@ class AnimationViewer {
                 val kslObject = objects[movement.objectId]
                 if (kslObject != null) {
                     if (kslObject.applyMovement(movement)) movementIterator.remove()
-                    else break
                 } else {
                     throw RuntimeException("Object ${movement.objectId} not found")
                 }
             }
         }
 
-        objects.forEach { it.value.render(batch!!, this) }
-        queues.forEach { it.value.render(batch!!, renderer!!, this) }
-        resources.forEach { it.value.render(batch!!, this) }
+        spriteBatch!!.transformMatrix = Main.camera.view
+        shapeRenderer!!.transformMatrix = Main.camera.view
+        spriteBatch!!.projectionMatrix = Main.camera.projection
+        shapeRenderer!!.projectionMatrix = Main.camera.projection
 
-        // debug render stations
-        stations.forEach {
-            val x = it.value.position.x * screenUnit + originX
-            val y = it.value.position.y * screenUnit + originY
+        screenUnit = Main.camera.viewportWidth / 10.0
+        originX = Main.camera.viewportWidth / 2.0
+        originY = Main.camera.viewportHeight / 2.0
 
-            renderer!!.begin(ShapeRenderer.ShapeType.Filled)
-            renderer!!.color = Color.RED
-            renderer!!.rect((x - 10).toFloat(), (y - 10).toFloat(), 20f, 20f)
-            renderer!!.end()
+        // render grid lines
+        if (showGridLines) {
+            shapeRenderer!!.begin(ShapeRenderer.ShapeType.Line)
+            shapeRenderer!!.end()
         }
+
+        objects.forEach { it.value.render(this) }
+        queues.forEach { it.value.render(this) }
+        resources.forEach { it.value.render(this) }
+        if (showStations) stations.forEach { it.value.render(this) }
     }
 
     fun dispose() {
-        if (batch != null) batch!!.dispose()
-        if (renderer != null) renderer!!.dispose()
+        if (spriteBatch != null) spriteBatch!!.dispose()
+        if (shapeRenderer != null) shapeRenderer!!.dispose()
         images.forEach { it.value.dispose() }
     }
 }
