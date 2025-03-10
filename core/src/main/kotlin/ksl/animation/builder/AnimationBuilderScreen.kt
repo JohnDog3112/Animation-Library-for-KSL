@@ -1,6 +1,7 @@
 package ksl.animation.builder
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.scenes.scene2d.Stage
@@ -20,9 +21,10 @@ import ktx.scene2d.vis.menuItem
 
 class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, InputAdapter() {
     private val stage = Stage(ScreenViewport())
-    private val objectSelector = ObjectSelectorWindow()
+    private val objectSelector = ObjectSelectorWindow({ type -> animationBuilder.addObject(type) })
     private val fileChooser = FileChooser(FileChooser.Mode.OPEN)
     private var animationBuilder = AnimationBuilder()
+    private var controlPressed = false
 
     override fun show() {
         val input = InputMultiplexer()
@@ -48,6 +50,24 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
             this@AnimationBuilderScreen.stage.addActor(fileChooser.fadeIn())
         }
 
+        val editMenu = menuBar.menu("Edit")
+        val undoItem = editMenu.menuItem("Undo...")
+        undoItem.setShortcut(Input.Keys.CONTROL_LEFT, Input.Keys.Z)
+        undoItem.onClick {
+            animationBuilder.undo()
+        }
+
+        val redoItem = editMenu.menuItem("Redo...")
+        redoItem.setShortcut(Input.Keys.CONTROL_LEFT, Input.Keys.Y)
+        redoItem.onClick {
+            animationBuilder.redo()
+        }
+
+        val snapToGridItem = editMenu.menuItem("Toggle Snap to Grid...")
+        snapToGridItem.onClick {
+            animationBuilder.snapToGrid = !animationBuilder.snapToGrid
+        }
+
         val switchToViewerItem = fileMenu.menuItem("Switch to Viewer...")
         switchToViewerItem.onClick {
             this@AnimationBuilderScreen.game.setScreen<AnimationViewerScreen>()
@@ -56,8 +76,15 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
         val viewMenu = menuBar.menu("View")
 
         val showGridLinesItem = viewMenu.menuItem("Toggle Grid Lines...")
+        showGridLinesItem.setShortcut(Input.Keys.CONTROL_LEFT, Input.Keys.G)
         showGridLinesItem.onClick {
             this@AnimationBuilderScreen.animationBuilder.showGridLines = !this@AnimationBuilderScreen.animationBuilder.showGridLines
+        }
+
+        val showIdsItem = viewMenu.menuItem("Toggle ID Rendering...")
+        showIdsItem.setShortcut(Input.Keys.CONTROL_LEFT, Input.Keys.I)
+        showIdsItem.onClick {
+            this@AnimationBuilderScreen.animationBuilder.showIds = !this@AnimationBuilderScreen.animationBuilder.showIds
         }
 
         stage.addActor(root)
@@ -71,5 +98,68 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
 
         stage.act(delta)
         stage.draw()
+    }
+
+    override fun keyDown(keycode: Int): Boolean {
+        if (keycode == Input.Keys.CONTROL_LEFT) controlPressed = true
+        if (!controlPressed) return false
+
+        if (keycode == Input.Keys.G) {
+            animationBuilder.showGridLines = !animationBuilder.showGridLines
+            return true
+        }
+
+        if (keycode == Input.Keys.I) {
+            animationBuilder.showIds = !animationBuilder.showIds
+            return true
+        }
+
+        if (keycode == Input.Keys.Z) {
+            animationBuilder.selectedObject = ""
+            animationBuilder.undo()
+            return true
+        }
+
+        if (keycode == Input.Keys.Y) {
+            animationBuilder.selectedObject = ""
+            animationBuilder.redo()
+            return true
+        }
+
+        return false
+    }
+
+    override fun keyUp(keycode: Int): Boolean {
+        if (keycode == Input.Keys.ESCAPE) Gdx.app.exit()
+
+        if (keycode == Input.Keys.CONTROL_LEFT) controlPressed = false
+
+        return false
+    }
+
+    override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
+        animationBuilder.onMouseMove(screenX, screenY)
+        return false
+    }
+
+    override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
+        animationBuilder.onMouseMove(screenX, screenY)
+        return false
+    }
+
+    override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+        animationBuilder.onMouseDown(screenX, screenY, button)
+        return false
+    }
+
+    override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+        animationBuilder.onMouseUp(screenX, screenY, button)
+        return false
+    }
+
+    override fun resize(width: Int, height: Int) {
+        animationBuilder.resize()
+        stage.viewport.update(width, height, true)
+        super.resize(width, height)
     }
 }

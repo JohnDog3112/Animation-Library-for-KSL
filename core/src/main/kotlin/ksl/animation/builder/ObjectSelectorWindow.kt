@@ -9,7 +9,7 @@ import com.kotcrab.vis.ui.widget.VisTextButton
 import com.kotcrab.vis.ui.widget.VisWindow
 import ktx.actors.onClick
 
-class ObjectSelectorWindow : VisWindow("Object Selector") {
+class ObjectSelectorWindow(onObjectAdd: (type: String) -> Unit) : VisWindow("Object Selector") {
     private var open = true
 
     init {
@@ -18,8 +18,11 @@ class ObjectSelectorWindow : VisWindow("Object Selector") {
         addCloseButton()
 
         val queueButton = VisTextButton("Queue")
+        queueButton.onClick { onObjectAdd("queue") }
         val stationButton = VisTextButton("Station")
+        stationButton.onClick { onObjectAdd("station") }
         val resourceButton = VisTextButton("Resource")
+        resourceButton.onClick { onObjectAdd("resource") }
         add(queueButton)
         add(stationButton)
         add(resourceButton)

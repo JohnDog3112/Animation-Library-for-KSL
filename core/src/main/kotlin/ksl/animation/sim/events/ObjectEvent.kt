@@ -2,7 +2,7 @@ package ksl.animation.sim.events
 
 import ksl.animation.sim.KSLLogEvent
 import ksl.animation.sim.KSLLogParsingException
-import ksl.animation.sim.KSLObject
+import ksl.animation.common.renderables.KSLObject
 import ksl.animation.util.KSLAnimationGlobals
 import ksl.animation.util.Position
 import ksl.animation.viewer.AnimationViewer

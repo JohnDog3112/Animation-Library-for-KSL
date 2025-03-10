@@ -1,40 +1,68 @@
 package ksl.animation.builder
 
-import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer
-import ksl.animation.Main
+import com.badlogic.gdx.Input
+import ksl.animation.builder.changes.AddQueue
+import ksl.animation.common.AnimationScene
+import ksl.animation.util.Position
 
-class AnimationBuilder {
-    var spriteBatch: SpriteBatch? = null
-    var shapeRenderer: ShapeRenderer? = null
+class AnimationBuilder : AnimationScene() {
+    private var count = 0
+    var selectedObject: String = ""
+    var snapToGrid = false
 
-    var screenUnit = 0.0
-    var originX = 0.0
-    var originY = 0.0
-    var showGridLines = true
+    fun addObject(type: String) {
+        when (type) {
+            "queue" -> {
+                val id = "queue_$count"
+                count++
+                applyChange(AddQueue(this, id))
+            }
+        }
+    }
 
-    fun render(delta: Float) {
-        if (spriteBatch == null) spriteBatch = SpriteBatch()
-        if (shapeRenderer == null) shapeRenderer = ShapeRenderer()
+    override fun render(delta: Float) {
+        super.render(delta)
 
-        spriteBatch!!.transformMatrix = Main.camera.view
-        shapeRenderer!!.transformMatrix = Main.camera.view
-        spriteBatch!!.projectionMatrix = Main.camera.projection
-        shapeRenderer!!.projectionMatrix = Main.camera.projection
+        renderables.forEach { it.value.render(this) }
+    }
 
-        screenUnit = Main.camera.viewportWidth / 10.0
-        originX = Main.camera.viewportWidth / 2.0
-        originY = Main.camera.viewportHeight / 2.0
+    fun onMouseDown(x: Int, y: Int, button: Int) {
+        val mouse = Position(x.toDouble(), y.toDouble())
+        var selectedAny = false
 
-//        shapeRenderer!!.begin(ShapeRenderer.ShapeType.Line)
-//        shapeRenderer!!.color = Color.WHITE
-//        Gdx.gl.glLineWidth(3f)
-//        for (i in -5..10) {
-//            shapeRenderer!!.line((i * screenUnit).toFloat(), 0f, (i * screenUnit).toFloat(), Main.camera.viewportHeight)
-//            shapeRenderer!!.line((i * screenUnit).toFloat(), 0f, (i * screenUnit).toFloat(), Main.camera.viewportHeight)
-//        }
-//        shapeRenderer!!.end()
+        renderables.forEach { (id, renderable) ->
+            if (selectedObject.isEmpty()) {
+                if (button == Input.Buttons.LEFT && renderable.pointInside(this@AnimationBuilder, mouse)) {
+                    selectedObject = id
+                    selectedAny = true
+                    renderable.selected = true
+                    return@forEach
+                }
+            }
+        }
+
+        if (selectedObject.isNotEmpty()) {
+            val selected = renderables[selectedObject]
+            if (selected!!.onMouseDown(this@AnimationBuilder, x, y, button, snapToGrid)) return
+        }
+
+        if (!selectedAny && button == Input.Buttons.LEFT) {
+            renderables[selectedObject]?.selected = false
+            selectedObject = ""
+        }
+    }
+
+    fun onMouseUp(x: Int, y: Int, button: Int) {
+        renderables[selectedObject]?.onMouseUp(this@AnimationBuilder, x, y, button, snapToGrid)
+    }
+
+    fun onMouseMove(x: Int, y: Int) {
+        val mouse = Position(x.toDouble(), y.toDouble())
+
+        renderables.forEach { (id, renderable) ->
+            renderable.highlighted = renderable.pointInside(this@AnimationBuilder, mouse)
+        }
+
+        renderables[selectedObject]?.onMouseMove(this@AnimationBuilder, x, y, snapToGrid)
     }
 }

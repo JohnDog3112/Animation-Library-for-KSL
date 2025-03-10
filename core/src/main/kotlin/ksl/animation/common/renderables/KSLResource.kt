@@ -1,10 +1,10 @@
-package ksl.animation.sim
+package ksl.animation.common.renderables
 
+import ksl.animation.common.AnimationScene
 import ksl.animation.setup.KSLAnimationObject
 import ksl.animation.setup.ResourceState
 import ksl.animation.setup.ResourceStates
 import ksl.animation.util.Position
-import ksl.animation.viewer.AnimationViewer
 
 class KSLResource(id: String, position: Position, states: List<ResourceState>, private val width: Double = 1.0, private val height: Double = 1.0) : KSLRenderable(id, position) {
     constructor(resourceObject: KSLAnimationObject.Resource) : this(resourceObject.id, resourceObject.position, resourceObject.states, resourceObject.width, resourceObject.height)
@@ -16,12 +16,15 @@ class KSLResource(id: String, position: Position, states: List<ResourceState>, p
         currentState = state
     }
 
-    override fun render(viewer: AnimationViewer) {
-        val texture = resourceStates.getImage(currentState, viewer.images)
-        viewer.spriteBatch!!.begin()
-        viewer.spriteBatch!!.draw(texture, (viewer.originX + position.x * viewer.screenUnit).toFloat(), (viewer.originY + position.y * viewer.screenUnit).toFloat(), (width * viewer.screenUnit).toFloat(), (height * viewer.screenUnit).toFloat())
-        viewer.spriteBatch!!.end()
+    override fun render(scene: AnimationScene) {
+        val translatedPosition = scene.worldToScreen(position)
+        val translatedSize = Position(width, height) * scene.screenUnit
 
-        super.render(viewer)
+        val texture = resourceStates.getImage(currentState, scene.images)
+        scene.spriteBatch.begin()
+        scene.spriteBatch.draw(texture, (translatedPosition.x - translatedSize.x / 2).toFloat(), (translatedPosition.y - translatedSize.y / 2).toFloat(), translatedSize.x.toFloat(), translatedSize.y.toFloat())
+        scene.spriteBatch.end()
+
+        super.render(scene)
     }
 }

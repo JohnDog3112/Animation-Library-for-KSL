@@ -39,9 +39,6 @@ object Assets {
 
 class Main : KtxGame<KtxScreen>() {
     companion object {
-        const val ANIMATION_SCREEN = "ANIMATION"
-        const val BUILDER_SCREEN = "BUILDER"
-
         const val STARTING_WIDTH = 1080
         const val STARTING_HEIGHT = 720
         val camera: OrthographicCamera = OrthographicCamera()
@@ -53,9 +50,9 @@ class Main : KtxGame<KtxScreen>() {
 
         VisUI.load()
         Scene2DSkin.defaultSkin = VisUI.getSkin()
-        defaultFont = VisUI.getSkin().getFont("default-font")
+        defaultFont = BitmapFont(true)
 
-        camera.setToOrtho(false, STARTING_WIDTH.toFloat(), STARTING_HEIGHT.toFloat())
+        camera.setToOrtho(true, STARTING_WIDTH.toFloat(), STARTING_HEIGHT.toFloat())
         Gdx.graphics.setWindowedMode(STARTING_WIDTH, STARTING_HEIGHT)
 
         // all assets loaded
@@ -67,8 +64,8 @@ class Main : KtxGame<KtxScreen>() {
     }
 
     override fun resize(width: Int, height: Int) {
+        camera.setToOrtho(true, width.toFloat(), height.toFloat())
         super.resize(width, height)
-        camera.setToOrtho(false, width.toFloat(), height.toFloat())
     }
 
     override fun dispose() {
