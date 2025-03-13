@@ -14,7 +14,6 @@ import com.kotcrab.vis.ui.widget.file.FileChooser
 import com.kotcrab.vis.ui.widget.file.FileChooser.DefaultFileIconProvider
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter
 import com.kotcrab.vis.ui.widget.file.StreamingFileChooserListener
-import ksl.animation.Main
 import ksl.animation.setup.KSLAnimation
 import ksl.animation.sim.KSLAnimationLog
 import ksl.animation.util.parseJsonToAnimation
