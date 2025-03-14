@@ -8,17 +8,21 @@ import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.kotcrab.vis.ui.FocusManager
+import com.kotcrab.vis.ui.VisUI
 import com.kotcrab.vis.ui.widget.MenuBar
+import com.kotcrab.vis.ui.widget.VisDialog
+import com.kotcrab.vis.ui.widget.VisLabel
 import com.kotcrab.vis.ui.widget.VisTable
 import com.kotcrab.vis.ui.widget.file.FileChooser
 import com.kotcrab.vis.ui.widget.file.FileChooser.DefaultFileIconProvider
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter
 import com.kotcrab.vis.ui.widget.file.StreamingFileChooserListener
-import ksl.animation.Main
+import ksl.animation.builder.AnimationBuilderScreen
 import ksl.animation.setup.KSLAnimation
 import ksl.animation.sim.KSLAnimationLog
 import ksl.animation.util.parseJsonToAnimation
 import ktx.actors.onClick
+import ktx.app.KtxGame
 import ktx.app.KtxScreen
 import ktx.app.clearScreen
 import ktx.scene2d.vis.menu
@@ -26,16 +30,14 @@ import ktx.scene2d.vis.menuItem
 import java.io.File
 import java.util.zip.ZipFile
 
-
-class AnimationViewerScreen() : KtxScreen, InputAdapter() {
-    private val stage: Stage = Stage(ScreenViewport())
-    private val playbackWindow: PlaybackWindow = PlaybackWindow({ animationViewer.playing = true }, { animationViewer.playing = false }, { tps -> animationViewer.ticksPerSecond = tps })
-    private val fileChooser: FileChooser = FileChooser(FileChooser.Mode.OPEN)
-    private val menuBar: MenuBar = MenuBar()
-    private val animationViewer: AnimationViewer = AnimationViewer()
+class AnimationViewerScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, InputAdapter() {
+    private val stage = Stage(ScreenViewport())
+    private val playbackWindow = PlaybackWindow({ animationViewer.playing = true }, { animationViewer.playing = false }, { tps -> animationViewer.ticksPerSecond = tps })
+    private val fileChooser = FileChooser(FileChooser.Mode.OPEN)
+    private val loadingDialog = VisDialog("Loading...")
+    private var animationViewer = AnimationViewer()
     private lateinit var animation: KSLAnimation
     private lateinit var animationLog: KSLAnimationLog
-    private var animationLoaded = false
     private var controlPressed = false
 
     fun loadAnimation(zipFileName: String) {
@@ -63,10 +65,12 @@ class AnimationViewerScreen() : KtxScreen, InputAdapter() {
     }
 
     private fun loadAnimation(setupFile: String, simFile: String) {
+        loadingDialog.show(stage)
         animationViewer.loadAnimationSetup(parseJsonToAnimation(setupFile))
-        animationLog = KSLAnimationLog(simFile, animationViewer)
-
-        animationLoaded = true
+        animationLog = KSLAnimationLog(simFile, animationViewer) {
+            animationViewer.ticks = animationLog.startTime
+            loadingDialog.hide()
+        }
     }
 
     override fun show() {
@@ -78,7 +82,12 @@ class AnimationViewerScreen() : KtxScreen, InputAdapter() {
         val root = VisTable()
         root.setFillParent(true)
 
+        val menuBar = MenuBar()
         root.add(menuBar.table).expandX().fillX().row()
+        val modeTable = VisTable()
+        modeTable.background = VisUI.getSkin().getDrawable("separator-menu")
+        modeTable.add(VisLabel("Viewer Mode"))
+        root.add(modeTable).fillX().row()
         root.add().expand().fill()
 
         val fileMenu = menuBar.menu("File")
@@ -87,7 +96,11 @@ class AnimationViewerScreen() : KtxScreen, InputAdapter() {
             this@AnimationViewerScreen.stage.addActor(fileChooser.fadeIn())
         }
 
-        menuBar.menu("Edit")
+        val switchToBuilderItem = fileMenu.menuItem("Switch to Builder...")
+        switchToBuilderItem.onClick {
+            this@AnimationViewerScreen.game.setScreen<AnimationBuilderScreen>()
+        }
+
         val viewMenu = menuBar.menu("View")
         val playbackWindowItem = viewMenu.menuItem("Toggle Playback Window...")
         playbackWindowItem.setShortcut(Input.Keys.CONTROL_LEFT, Input.Keys.P)
@@ -95,8 +108,32 @@ class AnimationViewerScreen() : KtxScreen, InputAdapter() {
             this@AnimationViewerScreen.playbackWindow.toggle()
         }
 
+        val showGridLinesItem = viewMenu.menuItem("Toggle Grid Lines...")
+        showGridLinesItem.setShortcut(Input.Keys.CONTROL_LEFT, Input.Keys.G)
+        showGridLinesItem.onClick {
+            this@AnimationViewerScreen.animationViewer.showGridLines = !this@AnimationViewerScreen.animationViewer.showGridLines
+        }
+
+        val showStationsItem = viewMenu.menuItem("Toggle Station Rendering...")
+        showStationsItem.onClick {
+            this@AnimationViewerScreen.animationViewer.showStations = !this@AnimationViewerScreen.animationViewer.showStations
+        }
+
+        val showIdsItem = viewMenu.menuItem("Toggle ID Rendering...")
+        showGridLinesItem.setShortcut(Input.Keys.CONTROL_LEFT, Input.Keys.I)
+        showIdsItem.onClick {
+            this@AnimationViewerScreen.animationViewer.showIds = !this@AnimationViewerScreen.animationViewer.showIds
+        }
+
+        loadingDialog.text("Please wait for the animation to load...")
+        loadingDialog.center()
+        loadingDialog.toFront()
+        loadingDialog.pack()
+        loadingDialog.hide()
+
         stage.addActor(root)
         stage.addActor(playbackWindow)
+        stage.addActor(loadingDialog)
 
         // setup file chooser
         fileChooser.selectionMode = FileChooser.SelectionMode.FILES
@@ -113,18 +150,15 @@ class AnimationViewerScreen() : KtxScreen, InputAdapter() {
                 loadAnimation(file.path())
             }
         })
-
-        FocusManager.resetFocus(stage)
     }
 
     override fun render(delta: Float) {
         clearScreen(red = 0.7f, green = 0.7f, blue = 0.7f)
+
+        animationViewer.render(delta)
+
         stage.act(delta)
         stage.draw()
-
-        if (animationLoaded) {
-            animationViewer.render(delta)
-        }
     }
 
     override fun keyDown(keycode: Int): Boolean {
@@ -133,6 +167,16 @@ class AnimationViewerScreen() : KtxScreen, InputAdapter() {
 
         if (keycode == Input.Keys.P) {
             playbackWindow.toggle()
+            return true
+        }
+
+        if (keycode == Input.Keys.G) {
+            this.animationViewer.showGridLines = !this.animationViewer.showGridLines
+            return true
+        }
+
+        if (keycode == Input.Keys.I) {
+            this.animationViewer.showIds = !this.animationViewer.showIds
             return true
         }
 
@@ -148,7 +192,9 @@ class AnimationViewerScreen() : KtxScreen, InputAdapter() {
     }
 
     override fun resize(width: Int, height: Int) {
+        animationViewer.resize()
         stage.viewport.update(width, height, true)
+        super.resize(width, height)
     }
 
     override fun dispose() {

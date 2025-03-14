@@ -1,8 +1,0 @@
-0: START
-0: OBJECT ADD "test_object" AS "object_1" AT "spawn"
-0: MOVE "object_1" FROM "spawn" TO "other" AS LINEAR
-10: MOVE "object_1" FROM "other" TO "spawn" AS EASE_IN
-20: MOVE "object_1" FROM "spawn" TO "other" AS EASE_OUT
-30: MOVE "object_1" FROM "other" TO "spawn" AS EASE_IN_OUT
-35: MOVE "object_1" FROM "spawn" TO "other" AS INSTANT
-40: STOP

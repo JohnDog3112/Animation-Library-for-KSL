@@ -2,10 +2,15 @@ package ksl.animation
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.utils.viewport.FitViewport
+import com.badlogic.gdx.utils.viewport.Viewport
 import com.kotcrab.vis.ui.VisUI
 import ksl.animation.Assets.assetManager
+import ksl.animation.builder.AnimationBuilderScreen
 import ksl.animation.viewer.AnimationViewerScreen
 import ktx.app.KtxGame
 import ktx.app.KtxScreen
@@ -33,20 +38,34 @@ object Assets {
 }
 
 class Main : KtxGame<KtxScreen>() {
+    companion object {
+        const val STARTING_WIDTH = 1080
+        const val STARTING_HEIGHT = 720
+        val camera: OrthographicCamera = OrthographicCamera()
+        lateinit var defaultFont: BitmapFont
+    }
 
     override fun create() {
         KtxAsync.initiate()
 
         VisUI.load()
         Scene2DSkin.defaultSkin = VisUI.getSkin()
+        defaultFont = BitmapFont(true)
 
-        Gdx.graphics.setWindowedMode(1080, 720)
+        camera.setToOrtho(true, STARTING_WIDTH.toFloat(), STARTING_HEIGHT.toFloat())
+        Gdx.graphics.setWindowedMode(STARTING_WIDTH, STARTING_HEIGHT)
 
         // all assets loaded
         if (assetManager.update()) {
-            addScreen(AnimationViewerScreen())
-            setScreen<AnimationViewerScreen>()
+            addScreen(AnimationViewerScreen(this))
+            addScreen(AnimationBuilderScreen(this))
+            setScreen<AnimationBuilderScreen>()
         }
+    }
+
+    override fun resize(width: Int, height: Int) {
+        camera.setToOrtho(true, width.toFloat(), height.toFloat())
+        super.resize(width, height)
     }
 
     override fun dispose() {

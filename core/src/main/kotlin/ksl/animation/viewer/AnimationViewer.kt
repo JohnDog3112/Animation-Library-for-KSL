@@ -1,39 +1,28 @@
 package ksl.animation.viewer
 
-import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import ksl.animation.common.AnimationScene
+import ksl.animation.common.renderables.KSLObject
+import ksl.animation.common.renderables.KSLQueue
+import ksl.animation.common.renderables.KSLResource
+import ksl.animation.common.renderables.KSLStation
 import ksl.animation.setup.KSLAnimation
 import ksl.animation.setup.KSLAnimationObject
 import ksl.animation.sim.*
-import ksl.animation.sim.events.MoveQuery
+import ksl.animation.util.KSLAnimationGlobals
 import java.util.*
 import kotlin.math.abs
 
-class AnimationViewer {
-    val images = mutableMapOf<String, Texture>()
-    val objects = mutableMapOf<String, KSLObject>()
-    val queues = mutableMapOf<String, KSLQueue>()
-    val resources = mutableMapOf<String, KSLResource>()
-    val objectTypes = mutableMapOf<String, KSLAnimationObject.ObjectType>()
-    val stations = mutableMapOf<String, KSLAnimationObject.Station>()
-    val movements = mutableListOf<MoveQuery>()
-
-    var screenUnit = 0.0
-    var originX = 0.0
-    var originY = 0.0
+class AnimationViewer : AnimationScene() {
+    var showStations = false
 
     lateinit var animationLog: KSLAnimationLog
     var ticksPerSecond = 1.0
     var playing = false
 
-    private var batch: SpriteBatch? = null
-    private var renderer: ShapeRenderer? = null
     private var currentEvent = 0
-    private var ticks = 0.0
+    var ticks = 0.0
     private var timer = 0.0
 
     fun loadAnimationSetup(animation: KSLAnimation) {
@@ -56,22 +45,22 @@ class AnimationViewer {
 
         // load objects
         animation.objects.filterIsInstance<KSLAnimationObject.Object>().forEach {
-            objects[it.id] = KSLObject(it)
+            addRenderable(KSLObject(it))
         }
 
         // load stations
         animation.objects.filterIsInstance<KSLAnimationObject.Station>().forEach {
-            stations[it.id] = it
+            addRenderable(KSLStation(it))
         }
 
         // load queues
         animation.objects.filterIsInstance<KSLAnimationObject.Queue>().forEach {
-            queues[it.id] = KSLQueue(it)
+            addRenderable(KSLQueue(it))
         }
 
         // load resources
         animation.objects.filterIsInstance<KSLAnimationObject.Resource>().forEach {
-            resources[it.id] = KSLResource(it)
+            addRenderable(KSLResource(it))
         }
     }
 
@@ -83,28 +72,28 @@ class AnimationViewer {
         // execute events that happen instantly
         this.animationLog.events.filter { abs(it.getTime() - this.animationLog.startTime) < 0.0001 }.forEach { event ->
             event.execute()
+            currentEvent++
         }
     }
 
-    fun render(delta: Float) {
-        if (batch == null) batch = SpriteBatch()
-        if (renderer == null) renderer = ShapeRenderer()
-
-        screenUnit = Gdx.graphics.width / 10.0
-        originX = Gdx.graphics.width / 2.0
-        originY = Gdx.graphics.height / 2.0
-
+    override fun render(delta: Float) {
         if (playing) timer += delta
 
         while (timer > 1 / ticksPerSecond) {
             timer -= 1 / ticksPerSecond
             ticks++
 
+            if (ticks > animationLog.endTime) playing = false
+
             while (currentEvent < animationLog.events.size) {
                 val event = animationLog.events[currentEvent]
                 if (event.getTime() > ticks) break
 
-                event.execute()
+                try {
+                    event.execute()
+                } catch (e: RuntimeException) {
+                    println(e.message)
+                }
                 currentEvent++
             }
         }
@@ -120,32 +109,23 @@ class AnimationViewer {
                 val kslObject = objects[movement.objectId]
                 if (kslObject != null) {
                     if (kslObject.applyMovement(movement)) movementIterator.remove()
-                    else break
                 } else {
-                    throw RuntimeException("Object ${movement.objectId} not found")
+                    if (KSLAnimationGlobals.VERBOSE) println("Object ${movement.objectId} not found")
+                    movementIterator.remove()
                 }
             }
         }
 
-        objects.forEach { it.value.render(batch!!, this) }
-        queues.forEach { it.value.render(batch!!, renderer!!, this) }
-        resources.forEach { it.value.render(batch!!, this) }
+        super.render(delta)
 
-        // debug render stations
-        stations.forEach {
-            val x = it.value.position.x * screenUnit + originX
-            val y = it.value.position.y * screenUnit + originY
-
-            renderer!!.begin(ShapeRenderer.ShapeType.Filled)
-            renderer!!.color = Color.RED
-            renderer!!.rect((x - 10).toFloat(), (y - 10).toFloat(), 20f, 20f)
-            renderer!!.end()
-        }
+        objects.forEach { it.value.render(this) }
+        queues.forEach { it.value.render(this) }
+        resources.forEach { it.value.render(this) }
+        if (showStations) stations.forEach { it.value.render(this) }
     }
 
-    fun dispose() {
-        if (batch != null) batch!!.dispose()
-        if (renderer != null) renderer!!.dispose()
+    override fun dispose() {
         images.forEach { it.value.dispose() }
+        super.dispose()
     }
 }

@@ -10,7 +10,7 @@ import ksl.animation.setup.KSLAnimation
 import ksl.animation.setup.KSLAnimationObject
 
 @Serializable
-data class Position(val x: Double, val y: Double) {
+data class Position(var x: Double, var y: Double) {
     operator fun plus(other: Position): Position {
         return Position(x + other.x, y + other.y)
     }

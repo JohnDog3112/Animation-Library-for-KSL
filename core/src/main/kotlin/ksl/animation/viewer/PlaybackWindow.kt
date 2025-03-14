@@ -1,7 +1,5 @@
 package ksl.animation.viewer
 
-import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.Touchable
@@ -13,11 +11,9 @@ import com.kotcrab.vis.ui.widget.VisImageButton
 import com.kotcrab.vis.ui.widget.VisWindow
 import com.kotcrab.vis.ui.widget.spinner.SimpleFloatSpinnerModel
 import com.kotcrab.vis.ui.widget.spinner.Spinner
-import ksl.animation.Assets.assetManager
 import ksl.animation.Assets.getUITexture
 import ktx.actors.onChange
 import ktx.actors.onClick
-import ktx.assets.getAsset
 
 class PlaybackWindow(onPlay: () -> Unit, onPause: () -> Unit, onSpeedChange: (tps: Double) -> Unit) : VisWindow("Playback") {
     private var playTexture: TextureRegion = getUITexture(0, 0)
