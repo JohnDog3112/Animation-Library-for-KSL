@@ -25,6 +25,7 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
     private val fileChooser = FileChooser(FileChooser.Mode.OPEN)
     private var animationBuilder = AnimationBuilder()
     private var controlPressed = false
+    //Test
 
     override fun show() {
         val input = InputMultiplexer()
