@@ -8,6 +8,10 @@ data class ResourceState(val name: String, val image: String, val default: Boole
 
 @Serializable
 class ResourceStates(private val states: List<ResourceState>) {
+    companion object {
+        const val DEFAULT_IMAGE = "..."
+    }
+
     val defaultState: ResourceState;
 
     init {

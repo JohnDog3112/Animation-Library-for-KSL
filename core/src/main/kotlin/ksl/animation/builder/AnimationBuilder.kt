@@ -1,14 +1,29 @@
 package ksl.animation.builder
 
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.graphics.Pixmap
+import com.badlogic.gdx.graphics.Texture
 import ksl.animation.builder.changes.AddQueue
 import ksl.animation.common.AnimationScene
+import ksl.animation.setup.ResourceStates
 import ksl.animation.util.Position
+import java.util.*
 
 class AnimationBuilder : AnimationScene() {
     private var count = 0
     var selectedObject: String = ""
     var snapToGrid = false
+
+    init {
+        try {
+            val decodedBytes = Base64.getDecoder().decode(ResourceStates.DEFAULT_IMAGE)
+            val pixmap = Pixmap(decodedBytes, 0, decodedBytes.size)
+            images["DEFAULT"] = Texture(pixmap)
+            pixmap.dispose()
+        } catch (e: IllegalArgumentException) {
+            println("Invalid Base64 string for image: DEFAULT")
+        }
+    }
 
     fun addObject(type: String) {
         when (type) {
