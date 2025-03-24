@@ -1,0 +1,9 @@
+{
+  "objects": [
+    {
+      "id": "Variable:TestVar",
+      "type": "variable",
+      "position": { "x":  1, "y": 1}
+    }
+  ]
+}

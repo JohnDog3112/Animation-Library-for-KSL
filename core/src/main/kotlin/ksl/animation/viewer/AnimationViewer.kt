@@ -3,10 +3,7 @@ package ksl.animation.viewer
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import ksl.animation.common.AnimationScene
-import ksl.animation.common.renderables.KSLObject
-import ksl.animation.common.renderables.KSLQueue
-import ksl.animation.common.renderables.KSLResource
-import ksl.animation.common.renderables.KSLStation
+import ksl.animation.common.renderables.*
 import ksl.animation.setup.KSLAnimation
 import ksl.animation.setup.KSLAnimationObject
 import ksl.animation.sim.*
@@ -61,6 +58,10 @@ class AnimationViewer : AnimationScene() {
         // load resources
         animation.objects.filterIsInstance<KSLAnimationObject.Resource>().forEach {
             addRenderable(KSLResource(it))
+        }
+
+        animation.objects.filterIsInstance<KSLAnimationObject.Variable>().forEach {
+            addRenderable(KSLVariable(it))
         }
     }
 
@@ -121,6 +122,7 @@ class AnimationViewer : AnimationScene() {
         objects.forEach { it.value.render(this) }
         queues.forEach { it.value.render(this) }
         resources.forEach { it.value.render(this) }
+        variables.forEach { it.value.render(this) }
         if (showStations) stations.forEach { it.value.render(this) }
     }
 

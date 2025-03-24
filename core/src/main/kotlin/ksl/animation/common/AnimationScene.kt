@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import ksl.animation.Main
@@ -11,7 +12,6 @@ import ksl.animation.common.renderables.*
 import ksl.animation.setup.KSLAnimationObject
 import ksl.animation.sim.events.MoveQuery
 import ksl.animation.util.Position
-import java.util.*
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -24,10 +24,12 @@ open class AnimationScene {
     val queues = mutableMapOf<String, KSLQueue>()
     val resources = mutableMapOf<String, KSLResource>()
     val stations = mutableMapOf<String, KSLStation>()
+    val variables = mutableMapOf<String, KSLVariable>()
     val renderables = mutableMapOf<String, KSLRenderable>()
 
     var spriteBatch: SpriteBatch = SpriteBatch()
     var shapeRenderer: ShapeRenderer = ShapeRenderer()
+    val font = BitmapFont(true)
 
     private var offset = Position(0.0, 0.0)
     private var startPan = Position(0.0, 0.0)
@@ -71,6 +73,11 @@ open class AnimationScene {
     fun addRenderable(station: KSLStation) {
         stations[station.id] = station
         renderables[station.id] = station
+    }
+
+    fun addRenderable(variable: KSLVariable) {
+        variables[variable.id] = variable
+        renderables[variable.id] = variable
     }
 
     open fun render(delta: Float) {
