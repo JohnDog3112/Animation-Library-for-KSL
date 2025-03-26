@@ -3,7 +3,8 @@
     {
       "id": "Variable:TestVar",
       "type": "variable",
-      "position": { "x":  1, "y": 1}
+      "position": { "x":  1, "y": 1 },
+      "width": 2
     }
   ]
 }
