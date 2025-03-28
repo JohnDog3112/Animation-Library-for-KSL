@@ -2,6 +2,7 @@ package ksl.animation.builder
 
 import com.badlogic.gdx.Input
 import ksl.animation.builder.changes.AddQueue
+import ksl.animation.builder.changes.AddVariable
 import ksl.animation.common.AnimationScene
 import ksl.animation.util.Position
 
@@ -16,6 +17,11 @@ class AnimationBuilder : AnimationScene() {
                 val id = "queue_$count"
                 count++
                 applyChange(AddQueue(this, id))
+            }
+            "variable" -> {
+                val id = "variable_$count"
+                count++
+                applyChange(AddVariable(this, id))
             }
         }
     }
