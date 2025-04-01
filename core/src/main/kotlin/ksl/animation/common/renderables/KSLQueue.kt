@@ -2,10 +2,17 @@ package ksl.animation.common.renderables
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.kotcrab.vis.ui.widget.VisLabel
+import com.kotcrab.vis.ui.widget.VisTable
+import com.kotcrab.vis.ui.widget.VisTextField
+import com.kotcrab.vis.ui.widget.spinner.SimpleFloatSpinnerModel
+import com.kotcrab.vis.ui.widget.spinner.Spinner
+import ksl.animation.builder.ObjectEditorWindow
 import ksl.animation.builder.changes.MoveQueueChange
 import ksl.animation.common.AnimationScene
 import ksl.animation.setup.KSLAnimationObject
 import ksl.animation.util.Position
+import ktx.actors.onChange
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
@@ -34,6 +41,22 @@ class KSLQueue(id: String, var startPosition: Position, var endPosition: Positio
     fun removeObject(kslObject: KSLObject) {
         objects.remove(kslObject.id)
         kslObject.inQueue = false
+    }
+
+    override fun displaySettings(content: VisTable) {
+        val queueIdTextField = VisTextField(id)
+        queueIdTextField.onChange { id = queueIdTextField.text }
+
+        val speedModel = SimpleFloatSpinnerModel(scale.toFloat(), 0.5f, 5f, 0.1f)
+        val spinner = Spinner("Scale", speedModel)
+        spinner.onChange { scale = speedModel.value.toDouble() }
+
+        content.add(VisLabel("Queue ID "))
+        content.add(queueIdTextField)
+        content.row()
+        content.add(spinner)
+        content.pack()
+        super.displaySettings(content)
     }
 
     override fun pointInside(scene: AnimationScene, point: Position): Boolean {

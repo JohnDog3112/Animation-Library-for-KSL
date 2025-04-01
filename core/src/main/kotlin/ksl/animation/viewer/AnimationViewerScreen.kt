@@ -32,7 +32,14 @@ import java.util.zip.ZipFile
 
 class AnimationViewerScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, InputAdapter() {
     private val stage = Stage(ScreenViewport())
-    private val playbackWindow = PlaybackWindow({ animationViewer.playing = true }, { animationViewer.playing = false }, { tps -> animationViewer.ticksPerSecond = tps })
+    //private val playbackWindow = PlaybackWindow({ animationViewer.playing = true }, { animationViewer.playing = false }, { tps -> animationViewer.ticksPerSecond = tps })
+    private val playbackWindow = PlaybackWindow(
+        onPlay = { animationViewer.playing = true },
+        onPause = { animationViewer.playing = false },
+        onSpeedChange = { tps -> animationViewer.ticksPerSecond = tps },
+        onReset = { animationViewer.reset() }
+    )
+
     private val fileChooser = FileChooser(FileChooser.Mode.OPEN)
     private val loadingDialog = VisDialog("Loading...")
     private var animationViewer = AnimationViewer()
