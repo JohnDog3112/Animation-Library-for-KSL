@@ -7,7 +7,7 @@ import ksl.animation.common.AnimationScene
 import ksl.animation.util.Position
 
 open class KSLRenderable(var id: String, var position: Position) {
-    private val renderedId = GlyphLayout(Main.defaultFont, id)
+    private var renderedId = GlyphLayout(Main.defaultFont, id)
     var highlighted = false
     var selected = false
 
@@ -25,6 +25,8 @@ open class KSLRenderable(var id: String, var position: Position) {
         val translatedPosition = scene.worldToScreen(position)
 
         if (scene.showIds) {
+            renderedId = GlyphLayout(Main.defaultFont, id)
+
             scene.spriteBatch.begin()
             Main.defaultFont.draw(scene.spriteBatch, renderedId, (translatedPosition.x - renderedId.width / 2).toFloat(), (translatedPosition.y + renderedId.height).toFloat(), )
             scene.spriteBatch.end()
