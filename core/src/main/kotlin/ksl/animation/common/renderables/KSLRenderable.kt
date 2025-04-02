@@ -1,14 +1,17 @@
 package ksl.animation.common.renderables
 
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
+import com.kotcrab.vis.ui.widget.VisTable
 import ksl.animation.Main
 import ksl.animation.common.AnimationScene
 import ksl.animation.util.Position
 
-open class KSLRenderable(val id: String, var position: Position) {
+open class KSLRenderable(var id: String, var position: Position) {
     private val renderedId = GlyphLayout(Main.defaultFont, id)
     var highlighted = false
     var selected = false
+
+    open fun displaySettings(content: VisTable) {}
 
     open fun pointInside(scene: AnimationScene, point: Position): Boolean {
         return false

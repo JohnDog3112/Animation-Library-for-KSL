@@ -8,6 +8,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.Align
 import com.kotcrab.vis.ui.widget.VisImageButton
+import com.kotcrab.vis.ui.widget.VisTextButton
 import com.kotcrab.vis.ui.widget.VisWindow
 import com.kotcrab.vis.ui.widget.spinner.SimpleFloatSpinnerModel
 import com.kotcrab.vis.ui.widget.spinner.Spinner
@@ -15,7 +16,12 @@ import ksl.animation.Assets.getUITexture
 import ktx.actors.onChange
 import ktx.actors.onClick
 
-class PlaybackWindow(onPlay: () -> Unit, onPause: () -> Unit, onSpeedChange: (tps: Double) -> Unit) : VisWindow("Playback") {
+class PlaybackWindow(
+    onPlay: () -> Unit,
+    onPause: () -> Unit,
+    onSpeedChange: (tps: Double) -> Unit,
+    onReset: () -> Unit
+) : VisWindow("Playback") {
     private var playTexture: TextureRegion = getUITexture(0, 0)
     private var pauseTexture: TextureRegion = getUITexture(1, 0)
     private var playing = false
@@ -33,8 +39,13 @@ class PlaybackWindow(onPlay: () -> Unit, onPause: () -> Unit, onSpeedChange: (tp
         val speedModel = SimpleFloatSpinnerModel(1f, 0.1f, 100f, 0.1f)
         val spinner = Spinner("Playback Speed (ticks/s)", speedModel)
         spinner.onChange { onSpeedChange(speedModel.value.toDouble()) }
+
+        val resetButton = VisTextButton("Reset")
+        resetButton.onClick { onReset() }
+
         group.addActor(playButton)
         group.addActor(spinner)
+        group.addActor(resetButton)
 
         add(group)
 

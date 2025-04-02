@@ -76,6 +76,23 @@ class AnimationViewer : AnimationScene() {
         }
     }
 
+
+    fun reset() {
+        ticks = 0.0
+        timer = 0.0
+        playing = false
+        currentEvent = 0
+
+        // Clear all animation objects
+        movements.clear()
+        objects.clear()
+        stations.clear()
+        queues.clear()
+        resources.clear()
+    }
+
+
+
     override fun render(delta: Float) {
         if (playing) timer += delta
 
