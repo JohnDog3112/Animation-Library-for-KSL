@@ -1,15 +1,32 @@
 package ksl.animation.builder
 
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.graphics.Pixmap
+import com.badlogic.gdx.graphics.Texture
 import ksl.animation.builder.changes.AddQueue
+import ksl.animation.builder.changes.AddResource
+import ksl.animation.builder.changes.AddStation
 import ksl.animation.common.AnimationScene
+import ksl.animation.setup.ResourceStates
 import ksl.animation.common.renderables.KSLRenderable
 import ksl.animation.util.Position
+import java.util.*
 
 class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) -> Unit) : AnimationScene() {
     private var count = 0
     var selectedObject: String = ""
     var snapToGrid = false
+
+    init {
+        try {
+            val decodedBytes = Base64.getDecoder().decode(ResourceStates.DEFAULT_IMAGE)
+            val pixmap = Pixmap(decodedBytes, 0, decodedBytes.size)
+            images["DEFAULT"] = Texture(pixmap)
+            pixmap.dispose()
+        } catch (e: IllegalArgumentException) {
+            println("Invalid Base64 string for image: DEFAULT")
+        }
+    }
 
     fun addObject(type: String) {
         when (type) {
@@ -17,6 +34,17 @@ class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) ->
                 val id = "queue_$count"
                 count++
                 applyChange(AddQueue(this, id))
+            }
+
+            "resource" -> {
+                val id = "resource_$count"
+                count++
+                applyChange(AddResource(this, id))
+            }
+            "station" -> {
+                val id = "station_$count"
+                count++
+                applyChange(AddStation(this, id))
             }
         }
     }
