@@ -4,10 +4,17 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.kotcrab.vis.ui.widget.VisLabel
+import com.kotcrab.vis.ui.widget.VisTable
+import com.kotcrab.vis.ui.widget.VisTextField
+import com.kotcrab.vis.ui.widget.spinner.SimpleFloatSpinnerModel
+import com.kotcrab.vis.ui.widget.spinner.Spinner
 import ksl.animation.builder.changes.MoveAndResizeVariableChange
 import ksl.animation.common.AnimationScene
 import ksl.animation.setup.KSLAnimationObject
 import ksl.animation.util.Position
+import ktx.actors.onChange
+import ktx.actors.onExit
 import java.text.DecimalFormat
 import kotlin.math.max
 import kotlin.math.min
@@ -20,9 +27,9 @@ class KSLVariable(
     var width: Double,
     var height: Double,
     defaultValue: String,
-    private val maxTextScale: Double,
-    private val precision: Int,
-    private var color: Color,
+    private var maxTextScale: Double,
+    private var precision: Int,
+    private var textColor: Color,
 ) : KSLRenderable(id, position) {
     constructor(kslVariable: KSLAnimationObject.Variable) : this(kslVariable.id, kslVariable.position, kslVariable.width, kslVariable.height, kslVariable.defaultValue, kslVariable.maxTextScale, kslVariable.precision, Color.WHITE) {
         val colorNum = kslVariable.textColor
@@ -35,15 +42,20 @@ class KSLVariable(
         val green = colorNum.and(0x00FF00).shr(2*4)
         val blue = colorNum.and(0x0000FF)
 
-        this.color = Color(red.toFloat()/255f, green.toFloat()/255f, blue.toFloat()/255f, 1.0f)
+        this.textColor = Color(red.toFloat()/255f, green.toFloat()/255f, blue.toFloat()/255f, 1.0f)
 
         this.recalculateClickPoints()
     }
+
+    init {
+        this.textColor = this.textColor.cpy()
+    }
+
     fun serialize(): KSLAnimationObject.Variable {
         val colorNum = (
-            (this.color.r*255 + 0.5).toInt().shl(8*2)
-            + (this.color.g*255 + 0.5).toInt().shl(8)
-            + (this.color.b*255 + 0.5).toInt()
+            (this.textColor.r*255 + 0.5).toInt().shl(8*2)
+            + (this.textColor.g*255 + 0.5).toInt().shl(8)
+            + (this.textColor.b*255 + 0.5).toInt()
         )
         return KSLAnimationObject.Variable(
             this.id,
@@ -55,6 +67,58 @@ class KSLVariable(
             this.precision,
             "#" + colorNum.toString(16)
         )
+    }
+    override fun displaySettings(content: VisTable) {
+        val variableIdTextField = VisTextField(id)
+        variableIdTextField.onChange { id = variableIdTextField.text }
+        content.add(VisLabel("Variable ID "))
+        content.add(variableIdTextField)
+
+        content.row()
+        val defaultValueField = VisTextField(value)
+        defaultValueField.onChange { value = this.text }
+        defaultValueField.onExit {
+            val asDouble = this.text.toDoubleOrNull()
+            if (asDouble != null) {
+                setValue(asDouble)
+                this.text = value
+            } else {
+                setValue(this.text)
+            }
+        }
+        content.add(VisLabel("Default Text"))
+        content.add(defaultValueField)
+
+        content.row()
+        val maxTextScaleSpeed = SimpleFloatSpinnerModel(this.maxTextScale.toFloat(), 0.5f, 5f, 0.1f)
+        val maxTextScaleSpinner = Spinner("Max Text Scale", maxTextScaleSpeed)
+        maxTextScaleSpinner.onChange { maxTextScale = maxTextScaleSpeed.value.toDouble() }
+        content.add(maxTextScaleSpinner)
+
+        content.row()
+        val precisionSpeed = SimpleFloatSpinnerModel(this.precision.toFloat(), 0.0f, 100f, 1f)
+        val precisionSpinner = Spinner("Precision", precisionSpeed)
+        precisionSpinner.onChange { precision = precisionSpeed.value.toInt() }
+        content.add(precisionSpinner)
+
+        content.row()
+        val redSpeed = SimpleFloatSpinnerModel(round(this.textColor.r*255f), 0f, 255f, 1f)
+        val redSpinner = Spinner("Red", redSpeed)
+        redSpinner.onChange { textColor.r = redSpeed.value/255f }
+        content.add(redSpinner)
+
+        val greenSpeed = SimpleFloatSpinnerModel(round(this.textColor.g*255f), 0f, 255f, 1f)
+        val greenSpinner = Spinner("Green", greenSpeed)
+        greenSpinner.onChange { textColor.g = greenSpeed.value/255f }
+        content.add(greenSpinner)
+
+        val blueSpeed = SimpleFloatSpinnerModel(round(this.textColor.b*255f), 0f, 255f, 1f)
+        val blueSpinner = Spinner("Blue", blueSpeed)
+        blueSpinner.onChange { textColor.b = blueSpeed.value/255f }
+        content.add(blueSpinner)
+
+        content.pack()
+        super.displaySettings(content)
     }
     private enum class DragPoint(val value: Int) {
         TOP(1),
@@ -121,7 +185,7 @@ class KSLVariable(
         val textX = translatedPosition.x + (translatedSize.x - textWidth)/2.0
         val textY = translatedPosition.y + (translatedSize.y - textHeight)/2.0
 
-        scene.font.color = this.color
+        scene.font.color = this.textColor
         scene.font.data.setScale(scale.toFloat())
 
         scene.spriteBatch.begin()
