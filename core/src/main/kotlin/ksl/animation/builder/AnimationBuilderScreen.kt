@@ -22,9 +22,11 @@ import ktx.scene2d.vis.menuItem
 class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, InputAdapter() {
     private val stage = Stage(ScreenViewport())
     private val objectSelector = ObjectSelectorWindow({ type -> animationBuilder.addObject(type) })
+    private val objectEditor = ObjectEditorWindow()
     private val fileChooser = FileChooser(FileChooser.Mode.OPEN)
-    private var animationBuilder = AnimationBuilder()
+    private var animationBuilder = AnimationBuilder({ renderable -> objectEditor.showObject(renderable) })
     private var controlPressed = false
+    //Test
 
     override fun show() {
         val input = InputMultiplexer()
@@ -89,6 +91,7 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
 
         stage.addActor(root)
         stage.addActor(objectSelector)
+        stage.addActor(objectEditor)
     }
 
     override fun render(delta: Float) {
