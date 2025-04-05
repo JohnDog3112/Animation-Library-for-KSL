@@ -16,7 +16,7 @@ class KSLStation(id: String, position: Position): KSLRenderable(id, position) {
         return KSLAnimationObject.Station(
             this.id,
             this.position
-        );
+        )
     }
     private var dragging = false
     private var dragOffset = Position(0.0, 0.0)
