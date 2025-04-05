@@ -21,6 +21,14 @@ import kotlin.math.sqrt
 class KSLQueue(id: String, var startPosition: Position, var endPosition: Position, var scale: Double = 1.0) : KSLRenderable(id, (startPosition + endPosition) * 0.5) {
     constructor(queueObject: KSLAnimationObject.Queue) : this(queueObject.id, queueObject.startPosition, queueObject.endPosition, queueObject.scale)
 
+    fun serialize(): KSLAnimationObject.Queue {
+        return KSLAnimationObject.Queue(
+            this.id,
+            this.startPosition,
+            this.endPosition,
+            this.scale
+        )
+    }
     companion object {
         const val START_POINT = "START"
         const val END_POINT = "END"

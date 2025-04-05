@@ -13,6 +13,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
 
+
 class KSLVariable(
     id: String,
     position: Position,
@@ -37,6 +38,23 @@ class KSLVariable(
         this.color = Color(red.toFloat()/255f, green.toFloat()/255f, blue.toFloat()/255f, 1.0f)
 
         this.recalculateClickPoints()
+    }
+    fun serialize(): KSLAnimationObject.Variable {
+        val colorNum = (
+            (this.color.r*255 + 0.5).toInt().shl(8*2)
+            + (this.color.g*255 + 0.5).toInt().shl(8)
+            + (this.color.b*255 + 0.5).toInt()
+        )
+        return KSLAnimationObject.Variable(
+            this.id,
+            this.position,
+            this.width,
+            this.height,
+            this.maxTextScale,
+            this.value,
+            this.precision,
+            "#" + colorNum.toString(16)
+        )
     }
     private enum class DragPoint(val value: Int) {
         TOP(1),

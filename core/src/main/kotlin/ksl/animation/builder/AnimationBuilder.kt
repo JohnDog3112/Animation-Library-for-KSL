@@ -22,8 +22,8 @@ class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) ->
         try {
             val decodedBytes = Base64.getDecoder().decode(ResourceStates.DEFAULT_IMAGE)
             val pixmap = Pixmap(decodedBytes, 0, decodedBytes.size)
-            images["DEFAULT"] = Texture(pixmap)
-            pixmap.dispose()
+            images["DEFAULT"] = Pair(pixmap, Texture(pixmap))
+//            pixmap.dispose()
         } catch (e: IllegalArgumentException) {
             println("Invalid Base64 string for image: DEFAULT")
         }

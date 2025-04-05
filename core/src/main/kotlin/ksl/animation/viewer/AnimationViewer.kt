@@ -28,8 +28,8 @@ class AnimationViewer : AnimationScene() {
             try {
                 val decodedBytes = Base64.getDecoder().decode(it.data)
                 val pixmap = Pixmap(decodedBytes, 0, decodedBytes.size)
-                images[it.id] = Texture(pixmap)
-                pixmap.dispose()
+                images[it.id] = Pair(pixmap, Texture(pixmap))
+//                pixmap.dispose()
             } catch (e: IllegalArgumentException) {
                 println("Invalid Base64 string for image: ${it.id}")
             }
@@ -144,7 +144,10 @@ class AnimationViewer : AnimationScene() {
     }
 
     override fun dispose() {
-        images.forEach { it.value.dispose() }
+        images.forEach {
+            it.value.first.dispose()
+            it.value.second.dispose()
+        }
         super.dispose()
     }
 }
