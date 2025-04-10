@@ -34,4 +34,17 @@ sealed class KSLAnimationObject {
     @Serializable
     @SerialName("station")
     data class Station(val id: String, val position: Position = Position(0.0, 0.0)) : KSLAnimationObject()
+
+    @Serializable
+    @SerialName("variable")
+    data class Variable(
+        val id: String,
+        val position: Position = Position(0.0, 0.0),
+        val width: Double = 1.0,
+        val height: Double = 1.0,
+        val maxTextScale: Double = 2.0,
+        val defaultValue: String = "0",
+        val precision: Int = 2,
+        val textColor: String = "#FFFFFF"
+    ) : KSLAnimationObject()
 }

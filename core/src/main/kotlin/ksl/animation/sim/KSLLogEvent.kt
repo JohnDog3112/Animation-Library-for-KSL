@@ -71,6 +71,17 @@ abstract class KSLLogEvent(private val time: Double, protected val viewer: Anima
         return station.position
     }
 
+    protected fun parseVariableId(): String {
+        val variableId = tokens[currentToken].trim('"')
+        next()
+
+        if (viewer.variables[variableId] != null) {
+            return variableId
+        } else {
+            throw KSLLogParsingException("Variable $variableId not found")
+        }
+    }
+
     protected fun parseString(): String {
         val value = tokens[currentToken].trim('"')
         next()

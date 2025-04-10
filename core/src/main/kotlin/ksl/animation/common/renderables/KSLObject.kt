@@ -15,6 +15,15 @@ class KSLObject(
 ) : KSLRenderable(id, position) {
     constructor(kslObject: KSLAnimationObject.Object) : this(kslObject.id, kslObject.position, kslObject.objectType, kslObject.width, kslObject.height)
 
+    fun serialize(): KSLAnimationObject.Object {
+        return KSLAnimationObject.Object(
+            this.id,
+            this.objectType,
+            this.position,
+            this.width,
+            this.height
+        )
+    }
     var inQueue = false
 
     fun render(x: Double, y: Double, width: Double, height: Double, scene: AnimationScene) {
@@ -23,7 +32,7 @@ class KSLObject(
 
         val objectType = scene.objectTypes[this.objectType]
         if (objectType != null) {
-            val texture = scene.images[objectType.image]
+            val texture = scene.images[objectType.image]?.second
             if (texture != null) {
                 scene.spriteBatch.begin()
                 scene.spriteBatch.draw(texture, (translatedPosition.x - translatedSize.x / 2).toFloat(), (translatedPosition.y - translatedSize.y / 2).toFloat(), translatedSize.x.toFloat(), translatedSize.y.toFloat())

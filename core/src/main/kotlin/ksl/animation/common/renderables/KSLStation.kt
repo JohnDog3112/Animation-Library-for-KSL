@@ -12,6 +12,12 @@ import kotlin.math.round
 class KSLStation(id: String, position: Position): KSLRenderable(id, position) {
     constructor(stationObject: KSLAnimationObject.Station) : this(stationObject.id, stationObject.position)
 
+    fun serialize(): KSLAnimationObject.Station {
+        return KSLAnimationObject.Station(
+            this.id,
+            this.position
+        )
+    }
     private var dragging = false
     private var dragOffset = Position(0.0, 0.0)
     private var originalPosition: Position = position.copy()

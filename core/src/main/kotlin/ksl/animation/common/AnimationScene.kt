@@ -3,20 +3,25 @@ package ksl.animation.common
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.Pixmap
+import com.badlogic.gdx.graphics.PixmapIO
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import ksl.animation.Main
 import ksl.animation.common.renderables.*
+import ksl.animation.setup.KSLAnimation
 import ksl.animation.setup.KSLAnimationObject
 import ksl.animation.sim.events.MoveQuery
 import ksl.animation.util.Position
+import java.io.ByteArrayOutputStream
 import java.util.*
 import kotlin.math.ceil
 import kotlin.math.floor
 
 open class AnimationScene {
-    val images = mutableMapOf<String, Texture>()
+    val images = mutableMapOf<String, Pair<Pixmap, Texture>>()
     val objectTypes = mutableMapOf<String, KSLAnimationObject.ObjectType>()
     val movements = mutableListOf<MoveQuery>()
 
@@ -24,10 +29,12 @@ open class AnimationScene {
     val queues = mutableMapOf<String, KSLQueue>()
     val resources = mutableMapOf<String, KSLResource>()
     val stations = mutableMapOf<String, KSLStation>()
+    val variables = mutableMapOf<String, KSLVariable>()
     val renderables = mutableMapOf<String, KSLRenderable>()
 
     var spriteBatch: SpriteBatch = SpriteBatch()
     var shapeRenderer: ShapeRenderer = ShapeRenderer()
+    val font = BitmapFont(true)
 
     private var offset = Position(0.0, 0.0)
     private var startPan = Position(0.0, 0.0)
@@ -43,6 +50,45 @@ open class AnimationScene {
 
     init {
         offset = Position(Main.camera.viewportWidth / 2.0, Main.camera.viewportHeight / 2.0)
+    }
+
+    fun serialize(): KSLAnimation {
+        val objectList = mutableListOf<KSLAnimationObject>()
+
+        this.images.forEach {
+            val png = PixmapIO.PNG()
+            val outStream = ByteArrayOutputStream()
+            png.write(outStream, it.value.first)
+            png.dispose()
+
+            objectList.addLast(KSLAnimationObject.Image(
+                it.key,
+                Base64.getEncoder().encodeToString(outStream.toByteArray())
+            ))
+
+            outStream.close()
+        }
+
+        this.objectTypes.forEach {
+            objectList.addLast(it.value)
+        }
+        this.objects.forEach {
+            objectList.addLast(it.value.serialize())
+        }
+        this.queues.forEach {
+            objectList.addLast(it.value.serialize())
+        }
+        this.resources.forEach {
+            objectList.addLast(it.value.serialize())
+        }
+        this.stations.forEach {
+            objectList.addLast(it.value.serialize())
+        }
+        this.variables.forEach {
+            objectList.addLast(it.value.serialize())
+        }
+
+        return KSLAnimation(objectList)
     }
 
     fun worldToScreen(position: Position): Position {
@@ -71,6 +117,11 @@ open class AnimationScene {
     fun addRenderable(station: KSLStation) {
         stations[station.id] = station
         renderables[station.id] = station
+    }
+
+    fun addRenderable(variable: KSLVariable) {
+        variables[variable.id] = variable
+        renderables[variable.id] = variable
     }
 
     open fun render(delta: Float) {

@@ -1,5 +1,6 @@
 package ksl.animation.setup
 
+import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import kotlinx.serialization.Serializable
 
@@ -21,12 +22,12 @@ class ResourceStates(private val states: List<ResourceState>) {
         }
     }
 
-    fun getImage(state: String, images: Map<String, Texture>): Texture {
+    fun getImage(state: String, images: Map<String, Pair<Pixmap, Texture>>): Texture {
         val neededState = states.find { it.name == state }
         val imageName = neededState?.image ?: defaultState.image
         val texture = images[imageName]
 
-        if (texture != null) return texture
+        if (texture != null) return texture.second
         else throw RuntimeException("Texture \"${imageName}\" not found in assets!")
     }
 }

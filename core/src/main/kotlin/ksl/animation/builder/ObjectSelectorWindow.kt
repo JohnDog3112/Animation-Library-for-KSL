@@ -23,9 +23,12 @@ class ObjectSelectorWindow(onObjectAdd: (type: String) -> Unit) : VisWindow("Obj
         stationButton.onClick { onObjectAdd("station") }
         val resourceButton = VisTextButton("Resource")
         resourceButton.onClick { onObjectAdd("resource") }
+        val variableButton = VisTextButton("Variable")
+        variableButton.onClick { onObjectAdd("variable") }
         add(queueButton)
         add(stationButton)
         add(resourceButton)
+        add(variableButton)
 
         pack()
     }

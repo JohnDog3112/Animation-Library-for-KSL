@@ -54,14 +54,40 @@ class KSLAnimationLog(logData: String, private val viewer: AnimationViewer, priv
         if (parts.size < 2) return null
 
         val time = parts[0].toDoubleOrNull() ?: return null
-        val tokens = parts[1].split(" ")
+//        val tokens = parts[1].split(" ")
+        val tokens: MutableList<String> = mutableListOf()
+        val tokenChars = parts[1].toCharArray()
+        var currentToken = ""
+        var inList = false
+        for (char in tokenChars) {
+            if (char == '"') {
+                currentToken += '"'
+                if (inList) {
+                    inList = false
+                    tokens.add(currentToken)
+                    currentToken = ""
+                } else {
+                    inList = true
+                }
+            } else if (inList) {
+                currentToken += char
+            } else if (char == ' ') {
+                if (currentToken != "")
+                    tokens.add(currentToken)
+                currentToken = ""
+            } else {
+                currentToken += char
+            }
+        }
+        if (currentToken != "") tokens.add(currentToken)
 
         return listOf(
             ObjectEvent(time, viewer),
             QueueEvent(time, viewer),
             ResourceEvent(time, viewer),
             MoveEvent(time, viewer),
-            AnimationEvent(time, viewer)
+            AnimationEvent(time, viewer),
+            VariableEvent(time, viewer)
         ).find { it.parse(tokens) }
     }
 }

@@ -4,6 +4,7 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import ksl.animation.builder.changes.AddQueue
+import ksl.animation.builder.changes.AddVariable
 import ksl.animation.builder.changes.AddResource
 import ksl.animation.builder.changes.AddStation
 import ksl.animation.common.AnimationScene
@@ -21,8 +22,8 @@ class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) ->
         try {
             val decodedBytes = Base64.getDecoder().decode(ResourceStates.DEFAULT_IMAGE)
             val pixmap = Pixmap(decodedBytes, 0, decodedBytes.size)
-            images["DEFAULT"] = Texture(pixmap)
-            pixmap.dispose()
+            images["DEFAULT"] = Pair(pixmap, Texture(pixmap))
+//            pixmap.dispose()
         } catch (e: IllegalArgumentException) {
             println("Invalid Base64 string for image: DEFAULT")
         }
@@ -34,6 +35,11 @@ class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) ->
                 val id = "queue_$count"
                 count++
                 applyChange(AddQueue(this, id))
+            }
+            "variable" -> {
+                val id = "variable_$count"
+                count++
+                applyChange(AddVariable(this, id))
             }
 
             "resource" -> {
