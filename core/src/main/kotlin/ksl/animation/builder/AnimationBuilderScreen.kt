@@ -5,12 +5,14 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.kotcrab.vis.ui.VisUI
 import com.kotcrab.vis.ui.widget.MenuBar
 import com.kotcrab.vis.ui.widget.VisLabel
 import com.kotcrab.vis.ui.widget.VisTable
 import com.kotcrab.vis.ui.widget.file.FileChooser
+import ksl.animation.common.renderables.*
 import ksl.animation.viewer.AnimationViewerScreen
 import ktx.actors.onClick
 import ktx.app.KtxGame
@@ -21,12 +23,20 @@ import ktx.scene2d.vis.menuItem
 
 class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, InputAdapter() {
     private val stage = Stage(ScreenViewport())
-    private val objectSelector = ObjectSelectorWindow({ type -> animationBuilder.addObject(type) })
-    private val objectEditor = ObjectEditorWindow()
+    private val addObjectWindow = AddObjectWindow({ type -> animationBuilder.addObject(type) })
+    private val objectEditor = ObjectEditorWindow(this)
     private val fileChooser = FileChooser(FileChooser.Mode.OPEN)
-    private var animationBuilder = AnimationBuilder({ renderable -> objectEditor.showObject(renderable) })
+    var animationBuilder = AnimationBuilder({ renderable -> objectEditor.showObject(renderable) })
     private var controlPressed = false
-    //Test
+
+    fun removeObject(kslObject: KSLRenderable) {
+        animationBuilder.removeObject(kslObject)
+        objectEditor.showObject(null)
+    }
+
+    fun copyObject(kslObject: KSLRenderable) {
+        animationBuilder.copyObject(kslObject)
+    }
 
     override fun show() {
         val input = InputMultiplexer()
@@ -44,7 +54,13 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
         modeTable.background = VisUI.getSkin().getDrawable("separator-menu")
         modeTable.add(VisLabel("Builder Mode"))
         root.add(modeTable).fillX().row()
-        root.add().expand().fill()
+
+        val windowTable = VisTable()
+        windowTable.add(addObjectWindow)
+        windowTable.add().expandX()
+        windowTable.add(objectEditor)
+
+        root.add(windowTable).expand().fill().row()
 
         val fileMenu = menuBar.menu("File")
         val importItem = fileMenu.menuItem("Import...")
@@ -77,6 +93,16 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
 
         val viewMenu = menuBar.menu("View")
 
+        val showAddObjectWindow = viewMenu.menuItem("Toggle Add Object Window...")
+        showAddObjectWindow.onClick {
+            this@AnimationBuilderScreen.addObjectWindow.toggle()
+        }
+
+        val showObjectEditorWindow = viewMenu.menuItem("Toggle Object Editor Window...")
+        showObjectEditorWindow.onClick {
+            this@AnimationBuilderScreen.objectEditor.toggle()
+        }
+
         val showGridLinesItem = viewMenu.menuItem("Toggle Grid Lines...")
         showGridLinesItem.setShortcut(Input.Keys.CONTROL_LEFT, Input.Keys.G)
         showGridLinesItem.onClick {
@@ -90,8 +116,6 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
         }
 
         stage.addActor(root)
-        stage.addActor(objectSelector)
-        stage.addActor(objectEditor)
     }
 
     override fun render(delta: Float) {

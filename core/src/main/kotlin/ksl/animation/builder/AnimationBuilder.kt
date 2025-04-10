@@ -3,13 +3,10 @@ package ksl.animation.builder
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
-import ksl.animation.builder.changes.AddQueue
-import ksl.animation.builder.changes.AddVariable
-import ksl.animation.builder.changes.AddResource
-import ksl.animation.builder.changes.AddStation
+import ksl.animation.builder.changes.*
 import ksl.animation.common.AnimationScene
+import ksl.animation.common.renderables.*
 import ksl.animation.setup.ResourceStates
-import ksl.animation.common.renderables.KSLRenderable
 import ksl.animation.util.Position
 import java.util.*
 
@@ -23,7 +20,6 @@ class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) ->
             val decodedBytes = Base64.getDecoder().decode(ResourceStates.DEFAULT_IMAGE)
             val pixmap = Pixmap(decodedBytes, 0, decodedBytes.size)
             images["DEFAULT"] = Pair(pixmap, Texture(pixmap))
-//            pixmap.dispose()
         } catch (e: IllegalArgumentException) {
             println("Invalid Base64 string for image: DEFAULT")
         }
@@ -41,7 +37,6 @@ class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) ->
                 count++
                 applyChange(AddVariable(this, id))
             }
-
             "resource" -> {
                 val id = "resource_$count"
                 count++
@@ -52,6 +47,28 @@ class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) ->
                 count++
                 applyChange(AddStation(this, id))
             }
+        }
+    }
+
+    fun removeObject(kslObject: KSLRenderable) {
+        if (kslObject.id == selectedObject) selectedObject = ""
+
+        when (kslObject) {
+            is KSLQueue -> applyChange(RemoveQueue(this, kslObject))
+            is KSLResource -> applyChange(RemoveResource(this, kslObject))
+            is KSLStation -> applyChange(RemoveStation(this, kslObject))
+            is KSLVariable -> applyChange(RemoveVariable(this, kslObject))
+        }
+    }
+
+    fun copyObject(kslObject: KSLRenderable) {
+        if (kslObject.id == selectedObject) selectedObject = ""
+
+        when (kslObject) {
+            is KSLQueue -> applyChange(CopyQueue(this, kslObject))
+            is KSLResource -> applyChange(CopyResource(this, kslObject))
+            is KSLStation -> applyChange(CopyStation(this, kslObject))
+            is KSLVariable -> applyChange(CopyVariable(this, kslObject))
         }
     }
 
@@ -66,14 +83,13 @@ class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) ->
         var selectedAny = false
 
         renderables.forEach { (id, renderable) ->
-            if (selectedObject.isEmpty()) {
-                if (button == Input.Buttons.LEFT && renderable.pointInside(this@AnimationBuilder, mouse)) {
-                    selectedObject = id
-                    selectedAny = true
-                    renderable.selected = true
-                    onObjectClick.invoke(renderable)
-                    return@forEach
-                }
+            renderable.selected = false
+            if (button == Input.Buttons.LEFT && renderable.pointInside(this@AnimationBuilder, mouse)) {
+                selectedObject = id
+                selectedAny = true
+                renderable.selected = true
+                onObjectClick.invoke(renderable)
+                return@forEach
             }
         }
 

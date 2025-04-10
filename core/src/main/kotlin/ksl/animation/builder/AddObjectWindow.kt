@@ -1,33 +1,56 @@
 package ksl.animation.builder
 
+import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.Interpolation
+import com.badlogic.gdx.scenes.scene2d.Action
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.Align
-import com.kotcrab.vis.ui.widget.VisImageButton
-import com.kotcrab.vis.ui.widget.VisTextButton
-import com.kotcrab.vis.ui.widget.VisWindow
+import com.kotcrab.vis.ui.widget.*
+import ksl.animation.Assets.getUITexture
 import ktx.actors.onClick
+import ktx.scene2d.vis.visTextTooltip
 
-class ObjectSelectorWindow(onObjectAdd: (type: String) -> Unit) : VisWindow("Object Selector") {
-    private var open = true
+class AddObjectWindow(onObjectAdd: (type: String) -> Unit) : VisWindow("Add Object", false) {
+    private var queueIcon: TextureRegion = getUITexture(2, 0)
+    private var resourceIcon: TextureRegion = getUITexture(3, 0)
+    private var stationIcon: TextureRegion = getUITexture(4, 0)
+    private var variableIcon: TextureRegion = getUITexture(5, 0)
+    private var open = false
 
     init {
-        defaults().pad(20f)
         titleLabel.setAlignment(Align.center)
         addCloseButton()
 
-        val queueButton = VisTextButton("Queue")
+        defaults().pad(20f, 40f, 20f, 40f)
+
+        isMovable = false
+        isKeepWithinParent = false
+        setKeepWithinStage(false)
+
+        val queueButton = VisImageButton(TextureRegionDrawable(queueIcon))
+        queueButton.visTextTooltip("Add Queue")
         queueButton.onClick { onObjectAdd("queue") }
-        val stationButton = VisTextButton("Station")
+
+        val stationButton = VisImageButton(TextureRegionDrawable(stationIcon))
+        stationButton.visTextTooltip("Add Station")
         stationButton.onClick { onObjectAdd("station") }
-        val resourceButton = VisTextButton("Resource")
+
+        val resourceButton = VisImageButton(TextureRegionDrawable(resourceIcon))
+        resourceButton.visTextTooltip("Add Resource")
         resourceButton.onClick { onObjectAdd("resource") }
-        val variableButton = VisTextButton("Variable")
+
+        val variableButton = VisImageButton(TextureRegionDrawable(variableIcon))
+        variableButton.visTextTooltip("Add Variable")
         variableButton.onClick { onObjectAdd("variable") }
+
         add(queueButton)
+        row()
         add(stationButton)
+        row()
         add(resourceButton)
+        row()
         add(variableButton)
 
         pack()

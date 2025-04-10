@@ -10,7 +10,7 @@ import ksl.animation.setup.ResourceStates
 import ksl.animation.util.Position
 import kotlin.math.round
 
-class KSLResource(id: String, position: Position, private val states: List<ResourceState>, private val width: Double = 1.0, private val height: Double = 1.0) : KSLRenderable(id, position) {
+class KSLResource(id: String, position: Position, val states: List<ResourceState>, val width: Double = 1.0, val height: Double = 1.0) : KSLRenderable(id, position) {
     constructor(resourceObject: KSLAnimationObject.Resource) : this(resourceObject.id, resourceObject.position, resourceObject.states, resourceObject.width, resourceObject.height)
 
     fun serialize(): KSLAnimationObject.Resource {

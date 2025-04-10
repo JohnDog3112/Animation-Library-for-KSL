@@ -26,10 +26,10 @@ class KSLVariable(
     position: Position,
     var width: Double,
     var height: Double,
-    defaultValue: String,
-    private var maxTextScale: Double,
-    private var precision: Int,
-    private var textColor: Color,
+    var defaultValue: String,
+    var maxTextScale: Double,
+    var precision: Int,
+    var textColor: Color,
 ) : KSLRenderable(id, position) {
     constructor(kslVariable: KSLAnimationObject.Variable) : this(kslVariable.id, kslVariable.position, kslVariable.width, kslVariable.height, kslVariable.defaultValue, kslVariable.maxTextScale, kslVariable.precision, Color.WHITE) {
         val colorNum = kslVariable.textColor
@@ -68,7 +68,8 @@ class KSLVariable(
             "#" + colorNum.toString(16)
         )
     }
-    override fun displaySettings(content: VisTable) {
+
+    override fun displaySettings(scene: AnimationScene, content: VisTable) {
         val variableIdTextField = VisTextField(id)
         variableIdTextField.onChange { id = variableIdTextField.text }
         content.add(VisLabel("Variable ID "))
@@ -118,7 +119,7 @@ class KSLVariable(
         content.add(blueSpinner)
 
         content.pack()
-        super.displaySettings(content)
+        super.displaySettings(scene, content)
     }
     private enum class DragPoint(val value: Int) {
         TOP(1),
