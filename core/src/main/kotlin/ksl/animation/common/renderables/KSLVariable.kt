@@ -4,9 +4,15 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.badlogic.gdx.scenes.scene2d.InputEvent
+import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.kotcrab.vis.ui.widget.VisLabel
 import com.kotcrab.vis.ui.widget.VisTable
+import com.kotcrab.vis.ui.widget.VisTextButton
 import com.kotcrab.vis.ui.widget.VisTextField
+import com.kotcrab.vis.ui.widget.color.ColorPicker
+import com.kotcrab.vis.ui.widget.color.ColorPickerAdapter
 import com.kotcrab.vis.ui.widget.spinner.SimpleFloatSpinnerModel
 import com.kotcrab.vis.ui.widget.spinner.Spinner
 import ksl.animation.builder.changes.MoveAndResizeVariableChange
@@ -68,7 +74,7 @@ class KSLVariable(
             "#" + colorNum.toString(16)
         )
     }
-    override fun displaySettings(content: VisTable) {
+    override fun displaySettings(content: VisTable, stage: Stage) {
         val variableIdTextField = VisTextField(id)
         variableIdTextField.onChange { id = variableIdTextField.text }
         content.add(VisLabel("Variable ID "))
@@ -102,23 +108,23 @@ class KSLVariable(
         content.add(precisionSpinner)
 
         content.row()
-        val redSpeed = SimpleFloatSpinnerModel(round(this.textColor.r*255f), 0f, 255f, 1f)
-        val redSpinner = Spinner("Red", redSpeed)
-        redSpinner.onChange { textColor.r = redSpeed.value/255f }
-        content.add(redSpinner)
+        val variableColorButton = VisTextButton("Variable Color")
+        content.add(variableColorButton)
+        variableColorButton.addListener(object: ClickListener() {
+            override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                val colorPicker = ColorPicker("Variable Color", object : ColorPickerAdapter() {
+                    override fun finished(color: Color) {
+                        textColor = color
+                    }
+                })
 
-        val greenSpeed = SimpleFloatSpinnerModel(round(this.textColor.g*255f), 0f, 255f, 1f)
-        val greenSpinner = Spinner("Green", greenSpeed)
-        greenSpinner.onChange { textColor.g = greenSpeed.value/255f }
-        content.add(greenSpinner)
-
-        val blueSpeed = SimpleFloatSpinnerModel(round(this.textColor.b*255f), 0f, 255f, 1f)
-        val blueSpinner = Spinner("Blue", blueSpeed)
-        blueSpinner.onChange { textColor.b = blueSpeed.value/255f }
-        content.add(blueSpinner)
+                colorPicker.color = textColor
+                stage.addActor(colorPicker)
+            }
+        })
 
         content.pack()
-        super.displaySettings(content)
+        super.displaySettings(content, stage)
     }
     private enum class DragPoint(val value: Int) {
         TOP(1),

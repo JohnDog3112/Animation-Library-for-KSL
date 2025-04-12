@@ -1,6 +1,7 @@
 package ksl.animation.common.renderables
 
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
+import com.badlogic.gdx.scenes.scene2d.Stage
 import com.kotcrab.vis.ui.widget.VisTable
 import ksl.animation.Main
 import ksl.animation.common.AnimationScene
@@ -11,7 +12,7 @@ open class KSLRenderable(var id: String, var position: Position) {
     var highlighted = false
     var selected = false
 
-    open fun displaySettings(content: VisTable) {}
+    open fun displaySettings(content: VisTable, stage: Stage) {}
 
     open fun pointInside(scene: AnimationScene, point: Position): Boolean {
         return false

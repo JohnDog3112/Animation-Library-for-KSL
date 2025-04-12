@@ -2,6 +2,7 @@ package ksl.animation.common.renderables
 
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.badlogic.gdx.scenes.scene2d.Stage
 import com.kotcrab.vis.ui.widget.VisLabel
 import com.kotcrab.vis.ui.widget.VisTable
 import com.kotcrab.vis.ui.widget.VisTextField
@@ -51,7 +52,7 @@ class KSLQueue(id: String, var startPosition: Position, var endPosition: Positio
         kslObject.inQueue = false
     }
 
-    override fun displaySettings(content: VisTable) {
+    override fun displaySettings(content: VisTable, stage: Stage) {
         val queueIdTextField = VisTextField(id)
         queueIdTextField.onChange { id = queueIdTextField.text }
 
@@ -64,7 +65,7 @@ class KSLQueue(id: String, var startPosition: Position, var endPosition: Positio
         content.row()
         content.add(spinner)
         content.pack()
-        super.displaySettings(content)
+        super.displaySettings(content, stage)
     }
 
     override fun pointInside(scene: AnimationScene, point: Position): Boolean {

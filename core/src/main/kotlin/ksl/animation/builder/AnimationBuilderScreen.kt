@@ -34,7 +34,7 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
     private val objectEditor = ObjectEditorWindow()
     private val fileChooser = FileChooser(FileChooser.Mode.OPEN)
     private val saveFileChooser = FileChooser(FileChooser.Mode.SAVE)
-    private var animationBuilder = AnimationBuilder({ renderable -> objectEditor.showObject(renderable) })
+    private var animationBuilder = AnimationBuilder({ renderable -> objectEditor.showObject(renderable, stage) })
     private var controlPressed = false
     //Test
 
