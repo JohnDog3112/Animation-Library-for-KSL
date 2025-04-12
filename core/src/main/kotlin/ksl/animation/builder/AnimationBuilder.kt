@@ -19,6 +19,10 @@ class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) ->
     var snapToGrid = false
 
     init {
+        this.loadDefaultImage()
+    }
+
+    private fun loadDefaultImage() {
         try {
             val decodedBytes = Base64.getDecoder().decode(ResourceStates.DEFAULT_IMAGE)
             val pixmap = Pixmap(decodedBytes, 0, decodedBytes.size)
@@ -27,6 +31,14 @@ class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) ->
         } catch (e: IllegalArgumentException) {
             println("Invalid Base64 string for image: DEFAULT")
         }
+    }
+
+    override fun resetScene() {
+        super.resetScene()
+        this.loadDefaultImage()
+        this.selectedObject = ""
+        this.snapToGrid = false
+        onObjectClick.invoke(null)
     }
 
     fun addObject(type: String) {

@@ -13,6 +13,7 @@ import com.kotcrab.vis.ui.widget.VisLabel
 import com.kotcrab.vis.ui.widget.VisTable
 import com.kotcrab.vis.ui.widget.file.FileChooser
 import com.kotcrab.vis.ui.widget.file.FileChooser.DefaultFileIconProvider
+import com.kotcrab.vis.ui.widget.file.FileChooserAdapter
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter
 import com.kotcrab.vis.ui.widget.file.StreamingFileChooserListener
 import ksl.animation.util.parseAnimationToJson
@@ -42,6 +43,9 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
     }
     private var saveInfo: SaveInfo? = null
 
+    private fun resetBuilder() {
+        this.animationBuilder.resetScene()
+    }
     private fun saveAnimation(saveInfo: SaveInfo) {
         val serializedJson = animationBuilder.serialize()
 
@@ -85,6 +89,10 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
         root.add().expand().fill()
 
         val fileMenu = menuBar.menu("File")
+        val newItem = fileMenu.menuItem("New File...")
+        newItem.onClick {
+            resetBuilder()
+        }
         val importItem = fileMenu.menuItem("Import...")
         importItem.onClick {
             this@AnimationBuilderScreen.stage.addActor(fileChooser.fadeIn())
@@ -116,6 +124,11 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
                 val tmpInfo = SaveInfo(file.path(), "")
                 saveInfo = tmpInfo
                 saveAnimation(tmpInfo)
+            }
+        })
+        saveFileChooser.setListener(object: FileChooserAdapter() {
+            override fun canceled() {
+                saveFileChooser.fadeOut()
             }
         })
 
@@ -193,6 +206,16 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
         if (keycode == Input.Keys.Y) {
             animationBuilder.selectedObject = ""
             animationBuilder.redo()
+            return true
+        }
+
+        if (keycode == Input.Keys.S) {
+            val tmpInfo = saveInfo
+            if (tmpInfo == null) {
+                this@AnimationBuilderScreen.stage.addActor(saveFileChooser.fadeIn())
+            } else {
+                saveAnimation(tmpInfo)
+            }
             return true
         }
 
