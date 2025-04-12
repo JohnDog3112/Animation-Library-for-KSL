@@ -11,7 +11,8 @@ open class KSLRenderable(var id: String, var position: Position) {
     var highlighted = false
     var selected = false
 
-    open fun displaySettings(scene: AnimationScene, content: VisTable) {}
+    open fun openEditor(scene: AnimationScene, content: VisTable) {}
+    open fun closeEditor(scene: AnimationScene) {}
 
     open fun pointInside(scene: AnimationScene, point: Position): Boolean {
         return false

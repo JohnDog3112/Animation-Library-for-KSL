@@ -21,7 +21,7 @@ sealed class KSLAnimationObject {
 
     @Serializable
     @SerialName("resource")
-    data class Resource(val id: String, val states: List<ResourceState>, val position: Position = Position(0.0, 0.0), val width: Double = 1.0, val height: Double = 1.0) : KSLAnimationObject()
+    data class Resource(val id: String, val states: ArrayList<ResourceState>, val position: Position = Position(0.0, 0.0), val width: Double = 1.0, val height: Double = 1.0) : KSLAnimationObject()
 
     @Serializable
     @SerialName("object_type")

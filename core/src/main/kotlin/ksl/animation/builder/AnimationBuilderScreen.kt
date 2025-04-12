@@ -5,7 +5,6 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.scenes.scene2d.Stage
-import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.kotcrab.vis.ui.VisUI
 import com.kotcrab.vis.ui.widget.MenuBar
@@ -22,11 +21,16 @@ import ktx.scene2d.vis.menu
 import ktx.scene2d.vis.menuItem
 
 class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, InputAdapter() {
+    companion object {
+        lateinit var imageImporterWindow: ImageImporterWindow
+    }
+
     private val stage = Stage(ScreenViewport())
     private val addObjectWindow = AddObjectWindow({ type -> animationBuilder.addObject(type) })
     private val objectEditor = ObjectEditorWindow(this)
     private val fileChooser = FileChooser(FileChooser.Mode.OPEN)
     var animationBuilder = AnimationBuilder({ renderable -> objectEditor.showObject(renderable) })
+
     private var controlPressed = false
 
     fun removeObject(kslObject: KSLRenderable) {
@@ -95,26 +99,33 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
 
         val showAddObjectWindow = viewMenu.menuItem("Toggle Add Object Window...")
         showAddObjectWindow.onClick {
-            this@AnimationBuilderScreen.addObjectWindow.toggle()
+            addObjectWindow.toggle()
         }
 
         val showObjectEditorWindow = viewMenu.menuItem("Toggle Object Editor Window...")
         showObjectEditorWindow.onClick {
-            this@AnimationBuilderScreen.objectEditor.toggle()
+            objectEditor.toggle()
+        }
+
+        val showImageImporterWindow = viewMenu.menuItem("Toggle Image Importer Window...")
+        showImageImporterWindow.onClick {
+            imageImporterWindow.toggle()
         }
 
         val showGridLinesItem = viewMenu.menuItem("Toggle Grid Lines...")
         showGridLinesItem.setShortcut(Input.Keys.CONTROL_LEFT, Input.Keys.G)
         showGridLinesItem.onClick {
-            this@AnimationBuilderScreen.animationBuilder.showGridLines = !this@AnimationBuilderScreen.animationBuilder.showGridLines
+            animationBuilder.showGridLines = !animationBuilder.showGridLines
         }
 
         val showIdsItem = viewMenu.menuItem("Toggle ID Rendering...")
         showIdsItem.setShortcut(Input.Keys.CONTROL_LEFT, Input.Keys.I)
         showIdsItem.onClick {
-            this@AnimationBuilderScreen.animationBuilder.showIds = !this@AnimationBuilderScreen.animationBuilder.showIds
+            animationBuilder.showIds = !animationBuilder.showIds
         }
 
+        imageImporterWindow = ImageImporterWindow(animationBuilder)
+        stage.addActor(imageImporterWindow)
         stage.addActor(root)
     }
 

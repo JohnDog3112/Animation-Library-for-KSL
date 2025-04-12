@@ -1,6 +1,9 @@
 package ksl.animation.builder.changes
 
 import com.badlogic.gdx.graphics.Color
+import com.kotcrab.vis.ui.widget.VisTextField
+import com.kotcrab.vis.ui.widget.color.BasicColorPicker
+import com.kotcrab.vis.ui.widget.spinner.SimpleFloatSpinnerModel
 import ksl.animation.common.AnimationChange
 import ksl.animation.common.AnimationScene
 import ksl.animation.common.renderables.KSLQueue
@@ -10,7 +13,7 @@ import ksl.animation.setup.ResourceState
 import ksl.animation.common.renderables.KSLVariable
 import ksl.animation.util.Position
 
-class EditQueueSettings(
+class EditQueueSettingsChange(
     scene: AnimationScene,
     private val queue: KSLQueue,
     private val previousId: String,
@@ -34,50 +37,79 @@ class EditQueueSettings(
     }
 }
 
-class EditResourceSettings(scene: AnimationScene, private val resourceId: String) : AnimationChange(scene) {
+class EditResourceSettingsChange(
+    scene: AnimationScene,
+    private val resource: KSLResource,
+    private val previousId: String,
+    private val id: String
+) : AnimationChange(scene) {
     override fun apply() {
-        val states = mutableListOf<ResourceState>()
-        states.add(ResourceState("DEFAULT", "DEFAULT", true))
-        scene.addRenderable(KSLResource(resourceId, Position(0.0, 0.0), states,0.5, 0.5))
+        resource.id = id
     }
 
     override fun redo() {
-        val defaultState = ResourceState("default", "default_image")
-        scene.addRenderable(KSLResource(resourceId, Position(0.0, 0.0), listOf(defaultState)))
+        resource.id = id
     }
 
     override fun undo() {
-        scene.resources.remove(resourceId)
-        scene.renderables.remove(resourceId)
+        resource.id = previousId
     }
 }
 
-class EditStationSettings(scene: AnimationScene, private val stationId: String) : AnimationChange(scene) {
+class EditStationSettingsChange(
+    scene: AnimationScene,
+    private val station: KSLStation,
+    private val previousId: String,
+    private val id: String
+) : AnimationChange(scene) {
     override fun apply() {
-        scene.addRenderable(KSLStation(stationId, Position(0.0, 0.0)))
+        station.id = id
     }
 
     override fun redo() {
-        scene.addRenderable(KSLStation(stationId, Position(0.0, 0.0)))
+        station.id = id
     }
 
     override fun undo() {
-        scene.stations.remove(stationId)
-        scene.renderables.remove(stationId)
+        station.id = previousId
     }
 }
 
-class EditVariableSettings(scene: AnimationScene, private val variableId: String) : AnimationChange(scene) {
+class EditVariableSettingsChange(
+    scene: AnimationScene,
+    private val variable: KSLVariable,
+    private val previousId: String,
+    private val id: String,
+    private val previousDefaultValue: String,
+    private val defaultValue: String,
+    private val previousMaxTextScale: Double,
+    private val maxTextScale: Double,
+    private val previousPrecision: Int,
+    private val precision: Int,
+    private val previousTextColor: Color,
+    private val textColor: Color
+) : AnimationChange(scene) {
     override fun apply() {
-        scene.addRenderable(KSLVariable(variableId, Position(-1.0, 0.0), 2.0, 1.0, "Variable", 2.0, 2, Color.BLACK))
+        variable.id = id
+        variable.defaultValue = defaultValue
+        variable.maxTextScale = maxTextScale
+        variable.precision = precision
+        variable.textColor = textColor
     }
 
     override fun redo() {
-        scene.addRenderable(KSLVariable(variableId, Position(-1.0, 0.0), 2.0, 1.0, "Variable", 2.0, 2, Color.BLACK))
+        variable.id = id
+        variable.defaultValue = defaultValue
+        variable.maxTextScale = maxTextScale
+        variable.precision = precision
+        variable.textColor = textColor
     }
 
     override fun undo() {
-        scene.variables.remove(variableId)
-        scene.renderables.remove(variableId)
+        variable.id = previousId
+        variable.defaultValue = previousDefaultValue
+        variable.maxTextScale = previousMaxTextScale
+        variable.precision = previousPrecision
+        variable.textColor = previousTextColor
     }
 }

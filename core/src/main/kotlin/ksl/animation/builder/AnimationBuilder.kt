@@ -95,18 +95,19 @@ class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) ->
 
         if (selectedObject.isNotEmpty()) {
             val selected = renderables[selectedObject]
-            if (selected!!.onMouseDown(this@AnimationBuilder, x, y, button, snapToGrid)) return
+            if (selected!!.onMouseDown(this, x, y, button, snapToGrid)) return
         }
 
         if (!selectedAny && button == Input.Buttons.LEFT) {
             renderables[selectedObject]?.selected = false
+            renderables[selectedObject]?.closeEditor(this)
             selectedObject = ""
             onObjectClick.invoke(null)
         }
     }
 
     fun onMouseUp(x: Int, y: Int, button: Int) {
-        renderables[selectedObject]?.onMouseUp(this@AnimationBuilder, x, y, button, snapToGrid)
+        renderables[selectedObject]?.onMouseUp(this, x, y, button, snapToGrid)
     }
 
     fun onMouseMove(x: Int, y: Int) {

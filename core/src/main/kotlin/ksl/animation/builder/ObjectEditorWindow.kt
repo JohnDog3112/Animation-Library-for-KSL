@@ -31,7 +31,7 @@ class ObjectEditorWindow(private val builderScreen: AnimationBuilderScreen) : Vi
         content.clear()
         content.defaults().center()
         if (kslObject != null) {
-            kslObject.displaySettings(builderScreen.animationBuilder, content)
+            kslObject.openEditor(builderScreen.animationBuilder, content)
 
             val editButtons = VisTable()
             editButtons.defaults().pad(30f, 10f, 0f, 10f)

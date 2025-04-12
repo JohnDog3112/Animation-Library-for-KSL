@@ -25,11 +25,11 @@ class CopyQueue(scene: AnimationScene, private val queue: KSLQueue) : AnimationC
 
 class CopyResource(scene: AnimationScene, private val resource: KSLResource) : AnimationChange(scene) {
     override fun apply() {
-        scene.addRenderable(KSLResource(resource.id + "_copy", resource.position + Position(0.0, 1.0), resource.states, resource.width, resource.height))
+        scene.addRenderable(KSLResource(resource.id + "_copy", resource.position + Position(0.0, 1.0), resource.resourceStates.states, resource.width, resource.height))
     }
 
     override fun redo() {
-        scene.addRenderable(KSLResource(resource.id + "_copy", resource.position + Position(0.0, 1.0), resource.states, resource.width, resource.height))
+        scene.addRenderable(KSLResource(resource.id + "_copy", resource.position + Position(0.0, 1.0), resource.resourceStates.states, resource.width, resource.height))
     }
 
     override fun undo() {

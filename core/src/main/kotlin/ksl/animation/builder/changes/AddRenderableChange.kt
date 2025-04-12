@@ -27,14 +27,15 @@ class AddQueue(scene: AnimationScene, private val queueId: String) : AnimationCh
 
 class AddResource(scene: AnimationScene, private val resourceId: String) : AnimationChange(scene) {
     override fun apply() {
-        val states = mutableListOf<ResourceState>()
+        val states = ArrayList<ResourceState>()
         states.add(ResourceState("DEFAULT", "DEFAULT", true))
-        scene.addRenderable(KSLResource(resourceId, Position(0.0, 0.0), states,0.5, 0.5))
+        scene.addRenderable(KSLResource(resourceId, Position(0.0, 0.0), states))
     }
 
     override fun redo() {
-        val defaultState = ResourceState("default", "default_image")
-        scene.addRenderable(KSLResource(resourceId, Position(0.0, 0.0), listOf(defaultState)))
+        val states = ArrayList<ResourceState>()
+        states.add(ResourceState("DEFAULT", "DEFAULT", true))
+        scene.addRenderable(KSLResource(resourceId, Position(0.0, 0.0), states))
     }
 
     override fun undo() {
