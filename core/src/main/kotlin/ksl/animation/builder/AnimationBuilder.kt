@@ -3,9 +3,10 @@ package ksl.animation.builder
 import com.badlogic.gdx.Input
 import ksl.animation.builder.changes.AddQueue
 import ksl.animation.common.AnimationScene
+import ksl.animation.common.renderables.KSLRenderable
 import ksl.animation.util.Position
 
-class AnimationBuilder : AnimationScene() {
+class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) -> Unit) : AnimationScene() {
     private var count = 0
     var selectedObject: String = ""
     var snapToGrid = false
@@ -36,6 +37,7 @@ class AnimationBuilder : AnimationScene() {
                     selectedObject = id
                     selectedAny = true
                     renderable.selected = true
+                    onObjectClick.invoke(renderable)
                     return@forEach
                 }
             }
@@ -49,6 +51,7 @@ class AnimationBuilder : AnimationScene() {
         if (!selectedAny && button == Input.Buttons.LEFT) {
             renderables[selectedObject]?.selected = false
             selectedObject = ""
+            onObjectClick.invoke(null)
         }
     }
 
