@@ -7,7 +7,6 @@ import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.ScreenViewport
-import com.kotcrab.vis.ui.FocusManager
 import com.kotcrab.vis.ui.VisUI
 import com.kotcrab.vis.ui.widget.MenuBar
 import com.kotcrab.vis.ui.widget.VisDialog
@@ -18,7 +17,6 @@ import com.kotcrab.vis.ui.widget.file.FileChooser.DefaultFileIconProvider
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter
 import com.kotcrab.vis.ui.widget.file.StreamingFileChooserListener
 import ksl.animation.builder.AnimationBuilderScreen
-import ksl.animation.setup.KSLAnimation
 import ksl.animation.sim.KSLAnimationLog
 import ksl.animation.util.parseJsonToAnimation
 import ktx.actors.onClick
@@ -32,7 +30,6 @@ import java.util.zip.ZipFile
 
 class AnimationViewerScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, InputAdapter() {
     private val stage = Stage(ScreenViewport())
-    //private val playbackWindow = PlaybackWindow({ animationViewer.playing = true }, { animationViewer.playing = false }, { tps -> animationViewer.ticksPerSecond = tps })
     private val playbackWindow = PlaybackWindow(
         onPlay = { animationViewer.playing = true },
         onPause = { animationViewer.playing = false },
@@ -43,7 +40,6 @@ class AnimationViewerScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, I
     private val fileChooser = FileChooser(FileChooser.Mode.OPEN)
     private val loadingDialog = VisDialog("Loading...")
     private var animationViewer = AnimationViewer()
-    private lateinit var animation: KSLAnimation
     private lateinit var animationLog: KSLAnimationLog
     private var controlPressed = false
 

@@ -26,7 +26,6 @@ class AnimationViewer : AnimationScene() {
     private var timer = 0.0
 
     fun loadAnimationSetup(animation: KSLAnimation) {
-        // load images
         animation.objects.filterIsInstance<KSLAnimationObject.Image>().forEach {
             try {
                 val decodedBytes = Base64.getDecoder().decode(it.data)

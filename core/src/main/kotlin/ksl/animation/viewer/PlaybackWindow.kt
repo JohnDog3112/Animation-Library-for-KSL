@@ -56,7 +56,7 @@ class PlaybackWindow(
         resetButton.pad(10f)
         buttonTable.add(resetButton).width(85f).center()
 
-        // Add layout to window
+        // Set layout to window
         add(buttonTable).expand().center()
         pack()
         setPosition(
