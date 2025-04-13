@@ -45,6 +45,7 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
 
     private fun resetBuilder() {
         this.animationBuilder.resetScene()
+        this.saveInfo = null
     }
     private fun saveAnimation(saveInfo: SaveInfo) {
         val serializedJson = animationBuilder.serialize()
