@@ -3,12 +3,24 @@ package ksl.animation.builder.changes
 import com.badlogic.gdx.graphics.Color
 import ksl.animation.common.AnimationChange
 import ksl.animation.common.AnimationScene
-import ksl.animation.common.renderables.KSLQueue
-import ksl.animation.common.renderables.KSLResource
-import ksl.animation.common.renderables.KSLStation
+import ksl.animation.common.renderables.*
 import ksl.animation.setup.ResourceState
-import ksl.animation.common.renderables.KSLVariable
 import ksl.animation.util.Position
+
+class AddObject(scene: AnimationScene, private val objectId: String) : AnimationChange(scene) {
+    override fun apply() {
+        scene.addRenderable(KSLObject(objectId, Position(0.0, 0.0), "default_object_type"))
+    }
+
+    override fun redo() {
+        scene.addRenderable(KSLObject(objectId, Position(0.0, 0.0), "default_object_type"))
+    }
+
+    override fun undo() {
+        scene.queues.remove(objectId)
+        scene.renderables.remove(objectId)
+    }
+}
 
 class AddQueue(scene: AnimationScene, private val queueId: String) : AnimationChange(scene) {
     override fun apply() {
@@ -28,13 +40,13 @@ class AddQueue(scene: AnimationScene, private val queueId: String) : AnimationCh
 class AddResource(scene: AnimationScene, private val resourceId: String) : AnimationChange(scene) {
     override fun apply() {
         val states = ArrayList<ResourceState>()
-        states.add(ResourceState("DEFAULT", "DEFAULT", true))
+        states.add(ResourceState("default_state", "default_resource", true))
         scene.addRenderable(KSLResource(resourceId, Position(0.0, 0.0), states))
     }
 
     override fun redo() {
         val states = ArrayList<ResourceState>()
-        states.add(ResourceState("DEFAULT", "DEFAULT", true))
+        states.add(ResourceState("default_state", "default_resource", true))
         scene.addRenderable(KSLResource(resourceId, Position(0.0, 0.0), states))
     }
 

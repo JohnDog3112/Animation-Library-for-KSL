@@ -23,6 +23,7 @@ import ktx.scene2d.vis.menuItem
 class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, InputAdapter() {
     companion object {
         lateinit var imageImporterWindow: ImageImporterWindow
+        lateinit var objectTypeEditorWindow: ObjectTypeEditorWindow
     }
 
     private val stage = Stage(ScreenViewport())
@@ -97,21 +98,6 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
 
         val viewMenu = menuBar.menu("View")
 
-        val showAddObjectWindow = viewMenu.menuItem("Toggle Add Object Window...")
-        showAddObjectWindow.onClick {
-            addObjectWindow.toggle()
-        }
-
-        val showObjectEditorWindow = viewMenu.menuItem("Toggle Object Editor Window...")
-        showObjectEditorWindow.onClick {
-            objectEditor.toggle()
-        }
-
-        val showImageImporterWindow = viewMenu.menuItem("Toggle Image Importer Window...")
-        showImageImporterWindow.onClick {
-            imageImporterWindow.toggle()
-        }
-
         val showGridLinesItem = viewMenu.menuItem("Toggle Grid Lines...")
         showGridLinesItem.setShortcut(Input.Keys.CONTROL_LEFT, Input.Keys.G)
         showGridLinesItem.onClick {
@@ -124,8 +110,32 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
             animationBuilder.showIds = !animationBuilder.showIds
         }
 
+        val windowMenu = menuBar.menu("Window")
+
+        val showAddObjectWindow = windowMenu.menuItem("Toggle Add Object Window...")
+        showAddObjectWindow.onClick {
+            addObjectWindow.toggle()
+        }
+
+        val showObjectEditorWindow = windowMenu.menuItem("Toggle Object Editor Window...")
+        showObjectEditorWindow.onClick {
+            objectEditor.toggle()
+        }
+
+        val showImageImporterWindow = windowMenu.menuItem("Toggle Image Importer Window...")
+        showImageImporterWindow.onClick {
+            imageImporterWindow.toggle()
+        }
+
+        val showObjectTypeEditorWindow = windowMenu.menuItem("Toggle Object Type Editor Window...")
+        showObjectTypeEditorWindow.onClick {
+            objectTypeEditorWindow.toggle()
+        }
+
         imageImporterWindow = ImageImporterWindow(animationBuilder)
+        objectTypeEditorWindow = ObjectTypeEditorWindow(animationBuilder)
         stage.addActor(imageImporterWindow)
+        stage.addActor(objectTypeEditorWindow)
         stage.addActor(root)
     }
 

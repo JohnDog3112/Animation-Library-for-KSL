@@ -126,7 +126,7 @@ class ImageImporterWindow(private val builder: AnimationBuilder) : VisWindow("Im
         rightTable.add(addImageButton)
         add(rightTable).fillY().right()
         fadeOut(true)
-        loadImage("DEFAULT")
+        loadImage("default_object_type")
 
         pack()
     }
@@ -143,9 +143,9 @@ class ImageImporterWindow(private val builder: AnimationBuilder) : VisWindow("Im
         imageIdField.text = imageId
         selectedImage.setDrawable(builder.images[imageId]?.second)
 
-        imageIdField.isDisabled = (imageId == "DEFAULT")
-        updateIdButton.isDisabled = (imageId == "DEFAULT")
-        deleteImageButton.isDisabled = (imageId == "DEFAULT")
+        imageIdField.isDisabled = (imageId == "default_object_type")
+        updateIdButton.isDisabled = (imageId == "default_object_type")
+        deleteImageButton.isDisabled = (imageId == "default_object_type")
 
         currentImageId = imageId
     }

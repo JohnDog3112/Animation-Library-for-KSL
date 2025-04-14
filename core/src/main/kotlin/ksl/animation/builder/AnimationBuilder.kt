@@ -6,27 +6,44 @@ import com.badlogic.gdx.graphics.Texture
 import ksl.animation.builder.changes.*
 import ksl.animation.common.AnimationScene
 import ksl.animation.common.renderables.*
+import ksl.animation.setup.KSLAnimationObject
 import ksl.animation.setup.ResourceStates
 import ksl.animation.util.Position
 import java.util.*
 
 class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) -> Unit) : AnimationScene() {
+    companion object {
+        private const val DEFAULT_RESOURCE_IMAGE = "iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAADLklEQVRoQ92aOWgVQRyH9yloo4JYeBE0JJGAIAgqWglRsBEU8ewSDIKFBBu1EIxaxUaDIoKC2nkh2hlQwUoxgpVXkhcL70LEo1DB4/s/ZsJm3x6zm/fyZmbgx+Rl5/h9OzO7szNTCmoU/gXBCopaiZag+UoLVCy1fEDvVfyWuIwGS0HwpBYWKKd4wHwTufehbjS7YElfyHcencHMm4JlBIVAAFhOhQfRVjS1aOWRfH/4fR0dx9TzvGXmAgFgHhX0o+15K8qZ/grp92Puo2k+IxAApqgudIx4lmnhE0z3lfyH0VlM/s0qKxMEiGkUcgL1ZBVWp+unpBtj9Hda+akgQMwk8020vk4mTYsdkO6M2W9JGRJBgFhEpjuo3bS2OqeTB8BGDL+OqycWBIgZJL6P5L1gU3iMmXWY/hE1lQQiT40dNhGEvFzF9M5MEFqjk0QXLYXQtrqAuRT2OK5FgJApxSskXcvmIF2rHfPvtMkoyC0ubLKZIOTtNuY3V4HQGqv550NHILTNNcA8kh9jLQKIS62hQcZapQICRCvRUBjMkZbBemWsDGmQXv5xxBHzUZtHgejVIKNcbXYUZBSIlhJtsxiA2Ne+Q2DNAtKJYdtfgFn3tEtAZJrcqCl6lkHT6/0CIjPcDaY5LE03ICAjmGux1KCprbKAyHfxXNMclqb7JCA/MTfdUoOmtn55BeJN1/JmsHvz+PXmhejNFMWPSaM8qB1/u5eZxrd692Eln7rDpq9Ry9K10Rojfi0+qHHix3KQgnFpSSh+gU6BLCR+iWxfMv2Mx2WMC9klroSq1XhHvuHTF7E1HTA2bytc5u7LbGRcSNvouUfKVZY9agfx02G80aPGyxziB2ipJTDP8LEWCBkfVSFxD1HByFb0NdToVZa7eNiC2e9JNzUVJDRm+vj7QINapg+Th7LqNgJRrbOL+ByarAMDshW9G4M3siDkujGIgpEjHCdR1WakSWU50kh37sFcbY9wRA2oQzXS1bahWh6qkbsvXelpDuhK0lwtEgMkhwr2oj1oIsecLpD/NGYm95hT3N2ilfTBszau6wNnSQfP5BDaCyQHz3Lf/bj6/wNIW7ItAq1QegAAAABJRU5ErkJggg=="
+        private const val DEFAULT_OBJECT_IMAGE = "iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAk0lEQVRoQ+2S0QkAIBCFrv2HrmYQhAKDPp+QtmZm3/v9WT3ksYYVeSzIVKQikoG+liQWYyuC1UnDikhiMbYiWJ00rIgkFmMrgtVJw4pIYjG2IlidNKyIJBZjK4LVScOKSGIxtiJYnTSsiCQWYyuC1UnDikhiMbYiWJ00rIgkFmMrgtVJw4pIYjG2IlidNKyIJBZjD62iMgGPECk2AAAAAElFTkSuQmCC"
+    }
+
     private var count = 0
     var selectedObject: String = ""
     var snapToGrid = false
 
     init {
         try {
-            val decodedBytes = Base64.getDecoder().decode(ResourceStates.DEFAULT_IMAGE)
-            val pixmap = Pixmap(decodedBytes, 0, decodedBytes.size)
-            images["DEFAULT"] = Pair(pixmap, Texture(pixmap))
+            val defaultResourceBytes = Base64.getDecoder().decode(DEFAULT_RESOURCE_IMAGE)
+            val defaultResourcePixmap = Pixmap(defaultResourceBytes, 0, defaultResourceBytes.size)
+            images["default_resource"] = Pair(defaultResourcePixmap, Texture(defaultResourcePixmap))
+
+            val defaultObjectBytes = Base64.getDecoder().decode(DEFAULT_OBJECT_IMAGE)
+            val defaultObjectPixmap = Pixmap(defaultObjectBytes, 0, defaultObjectBytes.size)
+            images["default_object_type"] = Pair(defaultObjectPixmap, Texture(defaultObjectPixmap))
+
+            objectTypes["default_object_type"] = KSLAnimationObject.ObjectType("default_object_type", "default_object_type")
         } catch (e: IllegalArgumentException) {
-            println("Invalid Base64 string for image: DEFAULT")
+            println("Invalid Base64 string for default images")
         }
     }
 
     fun addObject(type: String) {
         when (type) {
+            "object" -> {
+                val id = "object_$count"
+                count++
+                applyChange(AddObject(this, id))
+            }
             "queue" -> {
                 val id = "queue_$count"
                 count++
@@ -54,6 +71,7 @@ class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) ->
         if (kslObject.id == selectedObject) selectedObject = ""
 
         when (kslObject) {
+            is KSLObject -> applyChange(RemoveObject(this, kslObject))
             is KSLQueue -> applyChange(RemoveQueue(this, kslObject))
             is KSLResource -> applyChange(RemoveResource(this, kslObject))
             is KSLStation -> applyChange(RemoveStation(this, kslObject))
@@ -65,6 +83,7 @@ class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) ->
         if (kslObject.id == selectedObject) selectedObject = ""
 
         when (kslObject) {
+            is KSLObject -> applyChange(CopyObject(this, kslObject))
             is KSLQueue -> applyChange(CopyQueue(this, kslObject))
             is KSLResource -> applyChange(CopyResource(this, kslObject))
             is KSLStation -> applyChange(CopyStation(this, kslObject))

@@ -13,6 +13,7 @@ import ktx.actors.onClick
 import ktx.scene2d.vis.visTextTooltip
 
 class AddObjectWindow(onObjectAdd: (type: String) -> Unit) : VisWindow("Add Object", false) {
+    private var objectIcon: TextureRegion = getUITexture(6, 0)
     private var queueIcon: TextureRegion = getUITexture(2, 0)
     private var resourceIcon: TextureRegion = getUITexture(3, 0)
     private var stationIcon: TextureRegion = getUITexture(4, 0)
@@ -28,6 +29,10 @@ class AddObjectWindow(onObjectAdd: (type: String) -> Unit) : VisWindow("Add Obje
         isMovable = false
         isKeepWithinParent = false
         setKeepWithinStage(false)
+
+        val objectButton = VisImageButton(TextureRegionDrawable(objectIcon))
+        objectButton.visTextTooltip("Add Object")
+        objectButton.onClick { onObjectAdd("object") }
 
         val queueButton = VisImageButton(TextureRegionDrawable(queueIcon))
         queueButton.visTextTooltip("Add Queue")
@@ -45,6 +50,8 @@ class AddObjectWindow(onObjectAdd: (type: String) -> Unit) : VisWindow("Add Obje
         variableButton.visTextTooltip("Add Variable")
         variableButton.onClick { onObjectAdd("variable") }
 
+        add(objectButton)
+        row()
         add(queueButton)
         row()
         add(stationButton)

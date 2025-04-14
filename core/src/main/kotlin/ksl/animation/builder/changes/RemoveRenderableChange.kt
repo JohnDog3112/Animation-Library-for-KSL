@@ -2,10 +2,22 @@ package ksl.animation.builder.changes
 
 import ksl.animation.common.AnimationChange
 import ksl.animation.common.AnimationScene
-import ksl.animation.common.renderables.KSLQueue
-import ksl.animation.common.renderables.KSLResource
-import ksl.animation.common.renderables.KSLStation
-import ksl.animation.common.renderables.KSLVariable
+import ksl.animation.common.renderables.*
+
+class RemoveObject(scene: AnimationScene, private val kslObject: KSLObject) : AnimationChange(scene) {
+    override fun apply() {
+        scene.queues.remove(kslObject.id)
+        scene.renderables.remove(kslObject.id)
+    }
+
+    override fun redo() {
+        scene.addRenderable(kslObject)
+    }
+
+    override fun undo() {
+        scene.addRenderable(kslObject)
+    }
+}
 
 class RemoveQueue(scene: AnimationScene, private val queue: KSLQueue) : AnimationChange(scene) {
     override fun apply() {

@@ -2,11 +2,23 @@ package ksl.animation.builder.changes
 
 import ksl.animation.common.AnimationChange
 import ksl.animation.common.AnimationScene
-import ksl.animation.common.renderables.KSLQueue
-import ksl.animation.common.renderables.KSLResource
-import ksl.animation.common.renderables.KSLStation
-import ksl.animation.common.renderables.KSLVariable
+import ksl.animation.common.renderables.*
 import ksl.animation.util.Position
+
+class CopyObject(scene: AnimationScene, private val kslObject: KSLObject) : AnimationChange(scene) {
+    override fun apply() {
+        scene.addRenderable(KSLObject(kslObject.id + "_copy", kslObject.position, kslObject.objectType))
+    }
+
+    override fun redo() {
+        scene.addRenderable(KSLObject(kslObject.id + "_copy", kslObject.position, kslObject.objectType))
+    }
+
+    override fun undo() {
+        scene.queues.remove(kslObject.id + "_copy")
+        scene.renderables.remove(kslObject.id + "_copy")
+    }
+}
 
 class CopyQueue(scene: AnimationScene, private val queue: KSLQueue) : AnimationChange(scene) {
     override fun apply() {

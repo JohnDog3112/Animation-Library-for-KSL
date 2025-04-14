@@ -8,6 +8,7 @@ import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import com.badlogic.gdx.utils.Align
+import com.badlogic.gdx.utils.Array
 import com.kotcrab.vis.ui.VisUI
 import com.kotcrab.vis.ui.util.adapter.ArrayListAdapter
 import com.kotcrab.vis.ui.widget.*
@@ -15,6 +16,8 @@ import com.kotcrab.vis.ui.widget.file.FileChooser
 import com.kotcrab.vis.ui.widget.file.FileChooser.DefaultFileIconProvider
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter
 import com.kotcrab.vis.ui.widget.file.StreamingFileChooserListener
+import ksl.animation.setup.KSLAnimationObject
+import ktx.actors.onChange
 import ktx.actors.onClick
 
 class ObjectTypeAdapter(array: ArrayList<String>) : ArrayListAdapter<String, VisTable>(array) {
@@ -32,10 +35,7 @@ class ObjectTypeAdapter(array: ArrayList<String>) : ArrayListAdapter<String, Vis
     }
 
     override fun selectView(view: VisTable?) {
-        if (view != null) {
-            println(view.background)
-            view.background = selection
-        }
+        view!!.background = selection
     }
 
     override fun deselectView(view: VisTable?) {
@@ -43,17 +43,18 @@ class ObjectTypeAdapter(array: ArrayList<String>) : ArrayListAdapter<String, Vis
     }
 }
 
-class ObjectTypeEditorWindow(private val builder: AnimationBuilder) : VisWindow("Image Importer") {
+class ObjectTypeEditorWindow(private val builder: AnimationBuilder) : VisWindow("Object Type Editor Window") {
     private var open = false
-    private val fileChooser = FileChooser(FileChooser.Mode.OPEN)
-    private val imageAdapter = ImageAdapter(ArrayList(builder.images.keys.toList()))
-    private val imageView = ListView(imageAdapter)
-    private val imageIdField = VisTextField()
-    private val selectedImage = VisImage()
+    private val objectTypeAdapter = ObjectTypeAdapter(ArrayList(builder.objectTypes.keys.toList()))
+    private val objectTypeView = ListView(objectTypeAdapter)
+    private val objectIdTextField = VisTextField()
+    private val selectedObjectType = VisImage()
     private val updateIdButton = VisTextButton("Update")
-    private val deleteImageButton = VisTextButton("Delete")
-    private var imageCount = 0
-    private var currentImageId = ""
+    private val deleteObjectTypeButton = VisTextButton("Delete")
+    private val imageDropDown = VisSelectBox<String>()
+    private val addImageButton = VisTextButton("+")
+    private var objectTypeCount = 0
+    private var currentObjectTypeId = "default_object_type"
 
     init {
         titleLabel.setAlignment(Align.center)
@@ -63,73 +64,75 @@ class ObjectTypeEditorWindow(private val builder: AnimationBuilder) : VisWindow(
         isModal = true
         isMovable = false
 
-        // setup file chooser
-        fileChooser.selectionMode = FileChooser.SelectionMode.FILES
-        fileChooser.isFavoriteFolderButtonVisible = true
-        fileChooser.isShowSelectionCheckboxes = true
-        fileChooser.iconProvider = DefaultFileIconProvider(fileChooser)
-
-        val typeFilter = FileTypeFilter(true)
-        typeFilter.addRule("Image file (*.jpg, *.png)", "jpg", "png")
-        fileChooser.setFileTypeFilter(typeFilter)
-
-        fileChooser.setListener(object : StreamingFileChooserListener() {
-            override fun selected(file: FileHandle) {
-                val pixmap = Pixmap(file)
-                val imageId = "new_image_$imageCount"
-                builder.images[imageId] = Pair(pixmap, Texture(pixmap))
-                imageCount++
-
-                loadImage(imageId)
-                updateImages()
-            }
-        })
-
         defaults().pad(20f)
 
         val leftTable = VisTable()
-        val imageIdRow = VisTable()
+        val objectTypeIdRow = VisTable()
 
-        imageIdRow.defaults().pad(0f, 0f, 10f, 0f)
-        imageIdRow.add(VisLabel("Image ID: "))
-        imageIdRow.add(imageIdField)
+        objectTypeIdRow.defaults().pad(0f, 0f, 10f, 0f)
+        objectTypeIdRow.add(VisLabel("Object Type ID: "))
+        objectTypeIdRow.add(objectIdTextField)
 
-        val addImageButton = VisTextButton("Add")
-        addImageButton.onClick {
-            stage.addActor(fileChooser.fadeIn())
+        val imageTable = VisTable()
+        val imageIds = Array<String>()
+        builder.images.keys.forEach { imageIds.add(it) }
+
+        imageDropDown.selected = builder.objectTypes[currentObjectTypeId]?.image
+        imageDropDown.items = imageIds
+
+        imageDropDown.onChange {
+            builder.objectTypes[currentObjectTypeId]?.image = imageDropDown.selected
+            loadObjectType(currentObjectTypeId)
+        }
+
+        addImageButton.onClick { AnimationBuilderScreen.imageImporterWindow.toggle() }
+
+        imageTable.add(VisLabel("Image: "))
+        imageTable.add(imageDropDown)
+        imageTable.add(addImageButton)
+
+        val addObjectTypeButton = VisTextButton("Add")
+        addObjectTypeButton.onClick {
+            val objectTypeId = "new_object_type_$objectTypeCount"
+            builder.objectTypes[objectTypeId] = KSLAnimationObject.ObjectType(objectTypeId, "default_object_type")
+            objectTypeCount++
+
+            loadObjectType(objectTypeId)
+            updateObjectTypes()
         }
 
         updateIdButton.onClick {
-            builder.images[imageIdField.text] = builder.images[currentImageId]!!
-            builder.images.remove(currentImageId)
-            loadImage(imageIdField.text)
-            updateImages()
+            builder.objectTypes[objectIdTextField.text] = builder.objectTypes[currentObjectTypeId]!!
+            builder.objectTypes.remove(currentObjectTypeId)
+            loadObjectType(objectIdTextField.text)
+            updateObjectTypes()
         }
 
-        deleteImageButton.onClick {
-            builder.images.remove(currentImageId)
-            loadImage("DEFAULT")
-            updateImages()
+        deleteObjectTypeButton.onClick {
+            builder.objectTypes.remove(currentObjectTypeId)
+            loadObjectType("default_object_type")
+            updateObjectTypes()
         }
 
         val buttonTable = VisTable()
         buttonTable.defaults().pad(10f, 20f, 0f, 20f)
         buttonTable.add(updateIdButton)
-        buttonTable.add(deleteImageButton)
+        buttonTable.add(deleteObjectTypeButton)
 
-        leftTable.add(imageIdRow).row()
-        leftTable.add(selectedImage).width(200f).height(200f).row()
+        leftTable.add(objectTypeIdRow).row()
+        leftTable.add(imageTable).row()
+        leftTable.add(selectedObjectType).width(150f).height(150f).row()
         leftTable.add(buttonTable).row()
         add(leftTable).fillY().left()
 
-        imageAdapter.setItemClickListener { loadImage(it) }
+        objectTypeAdapter.setItemClickListener { loadObjectType(it) }
 
         val rightTable = VisTable()
-        rightTable.add(imageView.mainTable).grow().row()
-        rightTable.add(addImageButton)
+        rightTable.add(objectTypeView.mainTable).grow().row()
+        rightTable.add(addObjectTypeButton)
         add(rightTable).fillY().right()
         fadeOut(true)
-        loadImage("DEFAULT")
+        loadObjectType("default_object_type")
 
         pack()
     }
@@ -139,22 +142,30 @@ class ObjectTypeEditorWindow(private val builder: AnimationBuilder) : VisWindow(
         else fadeIn()
 
         open = !open
+
+        val imageIds = Array<String>()
+        builder.images.keys.forEach { imageIds.add(it) }
+
+        imageDropDown.selected = builder.objectTypes[currentObjectTypeId]?.image
+        imageDropDown.items = imageIds
     }
 
-    private fun loadImage(imageId: String) {
-        imageIdField.text = imageId
-        selectedImage.setDrawable(builder.images[imageId]?.second)
+    private fun loadObjectType(objectTypeId: String) {
+        objectIdTextField.text = objectTypeId
 
-        imageIdField.isDisabled = (imageId == "DEFAULT")
-        updateIdButton.isDisabled = (imageId == "DEFAULT")
-        deleteImageButton.isDisabled = (imageId == "DEFAULT")
+        println(objectTypeId + " " + builder.objectTypes[objectTypeId]?.image)
+        selectedObjectType.setDrawable(builder.images[builder.objectTypes[objectTypeId]?.image]?.second)
 
-        currentImageId = imageId
+        objectIdTextField.isDisabled = (objectTypeId == "default_object_type")
+        updateIdButton.isDisabled = (objectTypeId == "default_object_type")
+        deleteObjectTypeButton.isDisabled = (objectTypeId == "default_object_type")
+
+        currentObjectTypeId = objectTypeId
     }
 
-    private fun updateImages() {
-        imageAdapter.clear()
-        imageAdapter.addAll(ArrayList(builder.images.keys.toList()))
+    private fun updateObjectTypes() {
+        objectTypeAdapter.clear()
+        objectTypeAdapter.addAll(ArrayList(builder.objectTypes.keys.toList()))
         pack()
     }
 

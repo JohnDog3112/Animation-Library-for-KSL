@@ -6,12 +6,33 @@ import com.kotcrab.vis.ui.widget.color.BasicColorPicker
 import com.kotcrab.vis.ui.widget.spinner.SimpleFloatSpinnerModel
 import ksl.animation.common.AnimationChange
 import ksl.animation.common.AnimationScene
-import ksl.animation.common.renderables.KSLQueue
-import ksl.animation.common.renderables.KSLResource
-import ksl.animation.common.renderables.KSLStation
+import ksl.animation.common.renderables.*
 import ksl.animation.setup.ResourceState
-import ksl.animation.common.renderables.KSLVariable
 import ksl.animation.util.Position
+
+class EditObjectSettingsChange(
+    scene: AnimationScene,
+    private val kslObject: KSLObject,
+    private val previousId: String,
+    private val id: String,
+    private val previousObjectTypeId: String,
+    private val objectTypeId: String,
+) : AnimationChange(scene) {
+    override fun apply() {
+        kslObject.id = id
+        kslObject.objectType = objectTypeId
+    }
+
+    override fun redo() {
+        kslObject.id = id
+        kslObject.objectType = objectTypeId
+    }
+
+    override fun undo() {
+        kslObject.id = previousId
+        kslObject.objectType = previousObjectTypeId
+    }
+}
 
 class EditQueueSettingsChange(
     scene: AnimationScene,

@@ -25,7 +25,7 @@ sealed class KSLAnimationObject {
 
     @Serializable
     @SerialName("object_type")
-    data class ObjectType(val id: String, val image: String) : KSLAnimationObject()
+    data class ObjectType(val id: String, var image: String) : KSLAnimationObject()
 
     @Serializable
     @SerialName("object")
