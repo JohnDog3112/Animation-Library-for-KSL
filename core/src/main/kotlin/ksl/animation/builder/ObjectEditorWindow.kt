@@ -1,6 +1,7 @@
 package ksl.animation.builder
 
 import com.badlogic.gdx.math.Interpolation
+import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.utils.Align
@@ -27,8 +28,9 @@ class ObjectEditorWindow(private val builderScreen: AnimationBuilderScreen) : Vi
         showObject(null)
     }
 
-    fun showObject(kslObject: KSLRenderable?) {
+    fun showObject(kslObject: KSLRenderable?, stage: Stage) {
         content.clear()
+
         content.defaults().center()
         if (kslObject != null) {
             kslObject.openEditor(builderScreen.animationBuilder, content)

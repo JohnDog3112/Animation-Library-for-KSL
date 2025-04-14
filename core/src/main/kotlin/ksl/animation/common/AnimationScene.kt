@@ -90,6 +90,20 @@ open class AnimationScene {
 
         return KSLAnimation(objectList)
     }
+    open fun resetScene() {
+        this.images.clear()
+
+        this.objectTypes.clear()
+        this.objects.clear()
+        this.queues.clear()
+        this.resources.clear()
+        this.stations.clear()
+        this.variables.clear()
+        this.renderables.clear()
+
+        changePointer = 0
+        canRedo = false
+    }
 
     fun worldToScreen(position: Position): Position {
         return (position * screenUnit) + offset

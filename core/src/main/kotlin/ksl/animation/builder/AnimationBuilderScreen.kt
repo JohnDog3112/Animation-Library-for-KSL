@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.InputMultiplexer
+import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.kotcrab.vis.ui.VisUI
@@ -11,6 +12,11 @@ import com.kotcrab.vis.ui.widget.MenuBar
 import com.kotcrab.vis.ui.widget.VisLabel
 import com.kotcrab.vis.ui.widget.VisTable
 import com.kotcrab.vis.ui.widget.file.FileChooser
+import com.kotcrab.vis.ui.widget.file.FileChooser.DefaultFileIconProvider
+import com.kotcrab.vis.ui.widget.file.FileChooserAdapter
+import com.kotcrab.vis.ui.widget.file.FileTypeFilter
+import com.kotcrab.vis.ui.widget.file.StreamingFileChooserListener
+import ksl.animation.util.parseAnimationToJson
 import ksl.animation.common.renderables.*
 import ksl.animation.viewer.AnimationViewerScreen
 import ktx.actors.onClick
@@ -19,6 +25,9 @@ import ktx.app.KtxScreen
 import ktx.app.clearScreen
 import ktx.scene2d.vis.menu
 import ktx.scene2d.vis.menuItem
+import java.io.FileOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, InputAdapter() {
     companion object {
@@ -30,6 +39,7 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
     private val addObjectWindow = AddObjectWindow({ type -> animationBuilder.addObject(type) })
     private val objectEditor = ObjectEditorWindow(this)
     private val fileChooser = FileChooser(FileChooser.Mode.OPEN)
+    private val saveFileChooser = FileChooser(FileChooser.Mode.SAVE)
     var animationBuilder = AnimationBuilder({ renderable -> objectEditor.showObject(renderable) })
 
     private var controlPressed = false
@@ -43,6 +53,39 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
         animationBuilder.copyObject(kslObject)
     }
 
+    companion object {
+        data class SaveInfo(val pathStr: String, val simFileStr: String)
+    }
+    private var saveInfo: SaveInfo? = null
+
+    private fun resetBuilder() {
+        this.animationBuilder.resetScene()
+        this.saveInfo = null
+    }
+    private fun saveAnimation(saveInfo: SaveInfo) {
+        val serializedJson = animationBuilder.serialize()
+
+        try {
+            val zipOut = ZipOutputStream(FileOutputStream(saveInfo.pathStr))
+
+            val setupJson = ZipEntry("setup.json")
+            zipOut.putNextEntry(setupJson)
+            val setupJsonData = parseAnimationToJson(serializedJson).encodeToByteArray()
+            zipOut.write(setupJsonData)
+            zipOut.closeEntry()
+
+            val simFile = ZipEntry("sim.log")
+            zipOut.putNextEntry(simFile)
+            val simFileData = saveInfo.simFileStr.encodeToByteArray()
+            zipOut.write(simFileData)
+            zipOut.closeEntry()
+
+            zipOut.close()
+        } catch (e: Exception) {
+            println(e.printStackTrace())
+            println("Invalid file!")
+        }
+    }
     override fun show() {
         val input = InputMultiplexer()
         input.addProcessor(stage)
@@ -68,10 +111,48 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
         root.add(windowTable).expand().fill().row()
 
         val fileMenu = menuBar.menu("File")
+        val newItem = fileMenu.menuItem("New File...")
+        newItem.onClick {
+            resetBuilder()
+        }
         val importItem = fileMenu.menuItem("Import...")
         importItem.onClick {
             this@AnimationBuilderScreen.stage.addActor(fileChooser.fadeIn())
         }
+
+        val saveItem = fileMenu.menuItem("Save...")
+        saveItem.setShortcut(Input.Keys.CONTROL_LEFT, Input.Keys.S)
+        saveItem.onClick {
+            val tmpInfo = saveInfo
+            if (tmpInfo == null) {
+                this@AnimationBuilderScreen.stage.addActor(saveFileChooser.fadeIn())
+            } else {
+                saveAnimation(tmpInfo)
+            }
+        }
+
+        // setup file chooser
+        saveFileChooser.selectionMode = FileChooser.SelectionMode.FILES
+        saveFileChooser.isFavoriteFolderButtonVisible = true
+        saveFileChooser.isShowSelectionCheckboxes = true
+        saveFileChooser.iconProvider = DefaultFileIconProvider(fileChooser)
+
+        val typeFilter = FileTypeFilter(true)
+        typeFilter.addRule("Animation file (*.anim, *.zip)", "anim", "zip")
+        saveFileChooser.setFileTypeFilter(typeFilter)
+
+        saveFileChooser.setListener(object : StreamingFileChooserListener() {
+            override fun selected(file: FileHandle) {
+                val tmpInfo = SaveInfo(file.path(), "")
+                saveInfo = tmpInfo
+                saveAnimation(tmpInfo)
+            }
+        })
+        saveFileChooser.setListener(object: FileChooserAdapter() {
+            override fun canceled() {
+                saveFileChooser.fadeOut()
+            }
+        })
 
         val editMenu = menuBar.menu("Edit")
         val undoItem = editMenu.menuItem("Undo...")
@@ -171,6 +252,16 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
         if (keycode == Input.Keys.Y) {
             animationBuilder.selectedObject = ""
             animationBuilder.redo()
+            return true
+        }
+
+        if (keycode == Input.Keys.S) {
+            val tmpInfo = saveInfo
+            if (tmpInfo == null) {
+                this@AnimationBuilderScreen.stage.addActor(saveFileChooser.fadeIn())
+            } else {
+                saveAnimation(tmpInfo)
+            }
             return true
         }
 

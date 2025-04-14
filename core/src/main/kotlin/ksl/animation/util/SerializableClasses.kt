@@ -42,3 +42,23 @@ fun parseJsonToAnimation(content: String): KSLAnimation {
 
     return json.decodeFromString<KSLAnimation>(content)
 }
+
+@OptIn(ExperimentalSerializationApi::class)
+fun parseAnimationToJson(content: KSLAnimation): String {
+    val json = Json {
+        namingStrategy = JsonNamingStrategy.SnakeCase
+        serializersModule = SerializersModule {
+            polymorphic(KSLAnimationObject::class) {
+                subclass(KSLAnimationObject.Image::class, KSLAnimationObject.Image.serializer())
+                subclass(KSLAnimationObject.Queue::class, KSLAnimationObject.Queue.serializer())
+                subclass(KSLAnimationObject.Resource::class, KSLAnimationObject.Resource.serializer())
+                subclass(KSLAnimationObject.ObjectType::class, KSLAnimationObject.ObjectType.serializer())
+                subclass(KSLAnimationObject.Object::class, KSLAnimationObject.Object.serializer())
+                subclass(KSLAnimationObject.Station::class, KSLAnimationObject.Station.serializer())
+            }
+        }
+        prettyPrint = true
+    }
+
+    return json.encodeToString<KSLAnimation>(content)
+}
