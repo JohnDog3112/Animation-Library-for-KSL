@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Texture
 import ksl.animation.builder.changes.*
 import ksl.animation.common.AnimationScene
 import ksl.animation.common.renderables.*
+import ksl.animation.setup.KSLAnimation
 import ksl.animation.setup.KSLAnimationObject
 import ksl.animation.setup.ResourceStates
 import ksl.animation.util.Position
@@ -38,6 +39,78 @@ class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) ->
             objectTypes["default_object_type"] = KSLAnimationObject.ObjectType("default_object_type", "default_object_type")
         } catch (e: IllegalArgumentException) {
             println("Invalid Base64 string for default images")
+        }
+    }
+
+    fun loadAnimationSetup(animation: KSLAnimation) {
+        if (animation.builderSetup) {
+            animation.objects.filterIsInstance<KSLAnimationObject.Image>().forEach {
+                try {
+                    val decodedBytes = Base64.getDecoder().decode(it.data)
+                    val pixmap = Pixmap(decodedBytes, 0, decodedBytes.size)
+                    images[it.id] = Pair(pixmap, Texture(pixmap))
+                } catch (e: IllegalArgumentException) {
+                    println("Invalid Base64 string for image: ${it.id}")
+                }
+            }
+
+            // load base objects
+            animation.objects.filterIsInstance<KSLAnimationObject.ObjectType>().forEach {
+                objectTypes[it.id] = it
+            }
+
+            // load objects
+            animation.objects.filterIsInstance<KSLAnimationObject.Object>().forEach {
+                addRenderable(KSLObject(it))
+            }
+
+            // load stations
+            animation.objects.filterIsInstance<KSLAnimationObject.Station>().forEach {
+                addRenderable(KSLStation(it))
+            }
+
+            // load queues
+            animation.objects.filterIsInstance<KSLAnimationObject.Queue>().forEach {
+                addRenderable(KSLQueue(it))
+            }
+
+            // load resources
+            animation.objects.filterIsInstance<KSLAnimationObject.Resource>().forEach {
+                addRenderable(KSLResource(it))
+            }
+
+            animation.objects.filterIsInstance<KSLAnimationObject.Variable>().forEach {
+                addRenderable(KSLVariable(it))
+            }
+        } else {
+            // load base objects
+            animation.objects.filterIsInstance<KSLAnimationObject.ObjectType>().forEach {
+                objectTypes[it.id] = it
+            }
+
+            // load objects
+            animation.objects.filterIsInstance<KSLAnimationObject.Object>().forEach {
+                addRenderable(KSLObject(it))
+            }
+
+            // load stations
+            animation.objects.filterIsInstance<KSLAnimationObject.Station>().forEach {
+                addRenderable(KSLStation(it))
+            }
+
+            // load queues
+            animation.objects.filterIsInstance<KSLAnimationObject.Queue>().forEach {
+                addRenderable(KSLQueue(it))
+            }
+
+            // load resources
+            animation.objects.filterIsInstance<KSLAnimationObject.Resource>().forEach {
+                addRenderable(KSLResource(it))
+            }
+
+            animation.objects.filterIsInstance<KSLAnimationObject.Variable>().forEach {
+                addRenderable(KSLVariable(it))
+            }
         }
     }
 

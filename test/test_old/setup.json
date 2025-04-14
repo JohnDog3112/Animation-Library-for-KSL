@@ -55,5 +55,6 @@
       "type": "station",
       "position": { "x": 3, "y": 0 }
     }
-  ]
+  ],
+  "builder_setup": true
 }

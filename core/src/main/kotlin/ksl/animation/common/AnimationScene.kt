@@ -88,7 +88,7 @@ open class AnimationScene {
             objectList.addLast(it.value.serialize())
         }
 
-        return KSLAnimation(objectList)
+        return KSLAnimation(objectList, true)
     }
     open fun resetScene() {
         this.images.clear()

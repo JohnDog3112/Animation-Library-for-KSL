@@ -28,7 +28,7 @@ class ObjectEditorWindow(private val builderScreen: AnimationBuilderScreen) : Vi
         showObject(null)
     }
 
-    fun showObject(kslObject: KSLRenderable?, stage: Stage) {
+    fun showObject(kslObject: KSLRenderable?) {
         content.clear()
 
         content.defaults().center()

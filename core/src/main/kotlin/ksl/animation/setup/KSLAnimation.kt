@@ -6,7 +6,8 @@ import ksl.animation.util.Position
 
 @Serializable
 data class KSLAnimation(
-    val objects: List<KSLAnimationObject>
+    val objects: List<KSLAnimationObject>,
+    val builderSetup: Boolean
 )
 
 @Serializable
@@ -17,7 +18,7 @@ sealed class KSLAnimationObject {
 
     @Serializable
     @SerialName("queue")
-    data class Queue(val id: String, val startPosition: Position, val endPosition: Position, val scale: Double = 1.0) : KSLAnimationObject()
+    data class Queue(val id: String, val startPosition: Position = Position(-1.0, 0.0), val endPosition: Position = Position(1.0, 0.0), val scale: Double = 1.0) : KSLAnimationObject()
 
     @Serializable
     @SerialName("resource")

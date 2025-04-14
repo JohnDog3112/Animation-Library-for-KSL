@@ -1,0 +1,25 @@
+{
+    "objects": [
+        {
+            "type": "object_type",
+            "id": "customer"
+        },
+        {
+            "type": "station",
+            "id": "customer_spawn"
+        },
+        {
+            "type": "station",
+            "id": "pharmacist_station"
+        },
+        {
+            "type": "queue",
+            "id": "Pharmacy:PharmacyQ"
+        },
+        {
+            "type": "resource",
+            "id": "Pharmacy:Pharmacists"
+        }
+    ],
+    "builder_setup": false
+}

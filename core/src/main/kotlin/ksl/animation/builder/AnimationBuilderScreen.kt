@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.kotcrab.vis.ui.VisUI
 import com.kotcrab.vis.ui.widget.MenuBar
+import com.kotcrab.vis.ui.widget.VisDialog
 import com.kotcrab.vis.ui.widget.VisLabel
 import com.kotcrab.vis.ui.widget.VisTable
 import com.kotcrab.vis.ui.widget.file.FileChooser
@@ -18,6 +19,8 @@ import com.kotcrab.vis.ui.widget.file.FileTypeFilter
 import com.kotcrab.vis.ui.widget.file.StreamingFileChooserListener
 import ksl.animation.util.parseAnimationToJson
 import ksl.animation.common.renderables.*
+import ksl.animation.sim.KSLAnimationLog
+import ksl.animation.util.parseJsonToAnimation
 import ksl.animation.viewer.AnimationViewerScreen
 import ktx.actors.onClick
 import ktx.app.KtxGame
@@ -25,20 +28,24 @@ import ktx.app.KtxScreen
 import ktx.app.clearScreen
 import ktx.scene2d.vis.menu
 import ktx.scene2d.vis.menuItem
+import java.io.File
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
 class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, InputAdapter() {
     companion object {
         lateinit var imageImporterWindow: ImageImporterWindow
         lateinit var objectTypeEditorWindow: ObjectTypeEditorWindow
+        data class SaveInfo(val pathStr: String, val simFileStr: String)
     }
 
     private val stage = Stage(ScreenViewport())
     private val addObjectWindow = AddObjectWindow({ type -> animationBuilder.addObject(type) })
     private val objectEditor = ObjectEditorWindow(this)
     private val fileChooser = FileChooser(FileChooser.Mode.OPEN)
+    private val loadingDialog = VisDialog("Loading...")
     private val saveFileChooser = FileChooser(FileChooser.Mode.SAVE)
     var animationBuilder = AnimationBuilder({ renderable -> objectEditor.showObject(renderable) })
 
@@ -53,15 +60,43 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
         animationBuilder.copyObject(kslObject)
     }
 
-    companion object {
-        data class SaveInfo(val pathStr: String, val simFileStr: String)
+    fun loadAnimation(zipFileName: String) {
+        try {
+            ZipFile(File(zipFileName)).use { zip ->
+                val setupFile = zip.getEntry("setup.json")
+                val simFile = zip.getEntry("sim.log")
+
+                if (setupFile != null && simFile != null) {
+                    zip.getInputStream(setupFile).bufferedReader().use { setupReader ->
+                        zip.getInputStream(simFile).bufferedReader().use { simReader ->
+                            val setupJson = setupReader.readText()
+                            val simJson = simReader.readText()
+                            loadAnimation(setupJson, simJson)
+                        }
+                    }
+                } else {
+                    println("setup.json or sim.json not found in zip file.")
+                }
+            }
+        } catch (e: Exception) {
+            println(e.printStackTrace())
+            println("Invalid file!")
+        }
     }
+
+    private fun loadAnimation(setupFile: String, simFile: String) {
+        loadingDialog.show(stage)
+        animationBuilder.loadAnimationSetup(parseJsonToAnimation(setupFile))
+        loadingDialog.hide()
+    }
+
     private var saveInfo: SaveInfo? = null
 
     private fun resetBuilder() {
         this.animationBuilder.resetScene()
         this.saveInfo = null
     }
+
     private fun saveAnimation(saveInfo: SaveInfo) {
         val serializedJson = animationBuilder.serialize()
 
@@ -80,12 +115,15 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
             zipOut.write(simFileData)
             zipOut.closeEntry()
 
+            println(simFileData)
+
             zipOut.close()
         } catch (e: Exception) {
             println(e.printStackTrace())
             println("Invalid file!")
         }
     }
+
     override fun show() {
         val input = InputMultiplexer()
         input.addProcessor(stage)
@@ -120,6 +158,28 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
             this@AnimationBuilderScreen.stage.addActor(fileChooser.fadeIn())
         }
 
+        // setup file chooser
+        fileChooser.selectionMode = FileChooser.SelectionMode.FILES
+        fileChooser.isFavoriteFolderButtonVisible = true
+        fileChooser.isShowSelectionCheckboxes = true
+        fileChooser.iconProvider = DefaultFileIconProvider(fileChooser)
+
+        val typeFilter = FileTypeFilter(true)
+        typeFilter.addRule("Animation file (*.anim, *.zip)", "anim", "zip")
+        fileChooser.setFileTypeFilter(typeFilter)
+
+        fileChooser.setListener(object : StreamingFileChooserListener() {
+            override fun selected(file: FileHandle) {
+                val tmpInfo = SaveInfo(file.path(), "")
+                saveInfo = tmpInfo
+                loadAnimation(file.path())
+            }
+
+            override fun canceled() {
+                fileChooser.fadeOut()
+            }
+        })
+
         val saveItem = fileMenu.menuItem("Save...")
         saveItem.setShortcut(Input.Keys.CONTROL_LEFT, Input.Keys.S)
         saveItem.onClick {
@@ -137,9 +197,9 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
         saveFileChooser.isShowSelectionCheckboxes = true
         saveFileChooser.iconProvider = DefaultFileIconProvider(fileChooser)
 
-        val typeFilter = FileTypeFilter(true)
-        typeFilter.addRule("Animation file (*.anim, *.zip)", "anim", "zip")
-        saveFileChooser.setFileTypeFilter(typeFilter)
+        val saveTypeFilter = FileTypeFilter(true)
+        saveTypeFilter.addRule("Animation file (*.anim, *.zip)", "anim", "zip")
+        saveFileChooser.setFileTypeFilter(saveTypeFilter)
 
         saveFileChooser.setListener(object : StreamingFileChooserListener() {
             override fun selected(file: FileHandle) {
@@ -147,8 +207,7 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
                 saveInfo = tmpInfo
                 saveAnimation(tmpInfo)
             }
-        })
-        saveFileChooser.setListener(object: FileChooserAdapter() {
+
             override fun canceled() {
                 saveFileChooser.fadeOut()
             }
