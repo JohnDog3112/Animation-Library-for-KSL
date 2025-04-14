@@ -14,7 +14,7 @@ class VariableEvent(time: Double, viewer: AnimationViewer) : KSLLogEvent(time, v
     private lateinit var stringVal: String
     private var doubleVal: Double? = null
 
-    // RESOURCE "RESOURCE ID" SET STATE "NEW STATE"
+    // VARIABLE "VARIABLE ID" SET "VALUE"
     override fun parse(tokens: List<String>): Boolean {
         this.startParsing(tokens)
 

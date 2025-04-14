@@ -5,33 +5,51 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.utils.Align
-import com.kotcrab.vis.ui.widget.VisImageButton
-import com.kotcrab.vis.ui.widget.VisTable
-import com.kotcrab.vis.ui.widget.VisWindow
+import com.kotcrab.vis.ui.widget.*
 import ksl.animation.common.renderables.KSLRenderable
 import ktx.actors.onClick
 
-class ObjectEditorWindow : VisWindow("Object Editor") {
+class ObjectEditorWindow(private val builderScreen: AnimationBuilderScreen) : VisWindow("Object Editor") {
     private var open = true
     private val content = VisTable()
 
     init {
-        defaults().pad(20f)
         titleLabel.setAlignment(Align.center)
         addCloseButton()
 
-        x = 10000f
-        y = 10000f
+        defaults().pad(20f, 40f, 20f, 40f)
 
-        add(content)
+        isMovable = false
+        isKeepWithinParent = false
+        setKeepWithinStage(false)
 
-        pack()
+        add(content).grow()
+
+        showObject(null)
     }
 
     fun showObject(kslObject: KSLRenderable?, stage: Stage) {
         content.clear()
-        kslObject?.displaySettings(content, stage)
-        pack()
+
+        content.defaults().center()
+        if (kslObject != null) {
+            kslObject.openEditor(builderScreen.animationBuilder, content)
+
+            val editButtons = VisTable()
+            editButtons.defaults().pad(30f, 10f, 0f, 10f)
+
+            val deleteButton = VisTextButton("Delete")
+            deleteButton.onClick { builderScreen.removeObject(kslObject) }
+
+            val copyButton = VisTextButton("Copy")
+            copyButton.onClick { builderScreen.copyObject(kslObject) }
+
+            editButtons.add(deleteButton)
+            editButtons.add(copyButton)
+            content.add(editButtons)
+        } else {
+            content.add(VisLabel("Nothing Selected"))
+        }
     }
 
     fun toggle() {

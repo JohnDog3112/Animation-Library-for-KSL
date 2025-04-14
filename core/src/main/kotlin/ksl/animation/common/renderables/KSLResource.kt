@@ -1,74 +1,147 @@
 package ksl.animation.common.renderables
 
-import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Texture
-import ksl.animation.builder.changes.MoveResourceChange
+import com.badlogic.gdx.utils.Array
+import com.kotcrab.vis.ui.widget.VisCheckBox
+import com.kotcrab.vis.ui.widget.VisImage
+import com.kotcrab.vis.ui.widget.VisLabel
+import com.kotcrab.vis.ui.widget.VisSelectBox
+import com.kotcrab.vis.ui.widget.VisTable
+import com.kotcrab.vis.ui.widget.VisTextButton
+import com.kotcrab.vis.ui.widget.VisTextField
+import ksl.animation.builder.AnimationBuilderScreen
+import ksl.animation.builder.changes.EditResourceSettingsChange
 import ksl.animation.common.AnimationScene
 import ksl.animation.setup.KSLAnimationObject
 import ksl.animation.setup.ResourceState
 import ksl.animation.setup.ResourceStates
 import ksl.animation.util.Position
-import kotlin.math.round
+import ktx.actors.onChange
+import ktx.actors.onClick
 
-class KSLResource(id: String, position: Position, private val states: List<ResourceState>, private val width: Double = 1.0, private val height: Double = 1.0) : KSLRenderable(id, position) {
+class KSLResource(id: String, position: Position, states: ArrayList<ResourceState>, width: Double = 1.0, height: Double = 1.0) : KSLResizable(id, position, width, height) {
+    private val resourceIdTextField = VisTextField(id)
+    private val statesDropDown = VisSelectBox<String>()
+    private val stateNameField = VisTextField()
+    private val stateDefaultCheckbox = VisCheckBox("Default?")
+    private val addImageButton = VisTextButton("+")
+    private val imagesDropDown = VisSelectBox<String>()
+    private val imagePreview = VisImage()
+    private val addStateButton = VisTextButton("Add State")
+    private val updateStateButton = VisTextButton("Update State")
+    private val deleteStateButton = VisTextButton("Delete State")
+    private var stateCount = 0
+
     constructor(resourceObject: KSLAnimationObject.Resource) : this(resourceObject.id, resourceObject.position, resourceObject.states, resourceObject.width, resourceObject.height)
 
     fun serialize(): KSLAnimationObject.Resource {
         return KSLAnimationObject.Resource(
             this.id,
-            this.states,
+            this.resourceStates.states,
             this.position,
             this.width,
             this.height
         )
     }
 
-    private val resourceStates = ResourceStates(states)
+    val resourceStates = ResourceStates(states)
     private var currentState = resourceStates.defaultState.name
-    private var dragging = false
-    private var dragOffset = Position(0.0, 0.0)
-    private var originalPosition: Position = position.copy()
 
-    private fun distancePointToLine(point: Position, lineStart: Position, lineEnd: Position): Double {
-        val A = point.x - lineStart.x
-        val B = point.y - lineStart.y
-        val C = lineEnd.x - lineStart.x
-        val D = lineEnd.y - lineStart.y
+    fun setState(stateName: String, scene: AnimationScene? = null) {
+        currentState = stateName
+        if (scene != null) {
+            val state = resourceStates.getState(stateName)
+            statesDropDown.selected = stateName
+            stateNameField.text = stateName
+            stateDefaultCheckbox.isChecked = state.default == true
+            imagesDropDown.selected = state.image
+            imagePreview.setDrawable(scene.images.let { resourceStates.getImage(stateName, it) })
 
-        val dot = A * C + B * D
-        val lenSq = C * C + D * D
-        val param = if (lenSq != 0.0) dot / lenSq else -1.0
-
-        val (xx, yy) = when {
-            param < 0 -> Pair(lineStart.x, lineStart.y)
-            param > 1 -> Pair(lineEnd.x, lineEnd.y)
-            else -> Pair(lineStart.x + param * C, lineStart.y + param * D)
-        }
-
-        val dx = point.x - xx
-        val dy = point.y - yy
-        return kotlin.math.sqrt(dx * dx + dy * dy)
-    }
-
-    private fun getClosestPointOnLine(point: Position, lineStart: Position, lineEnd: Position): Position {
-        val A = point.x - lineStart.x
-        val B = point.y - lineStart.y
-        val C = lineEnd.x - lineStart.x
-        val D = lineEnd.y - lineStart.y
-
-        val dot = A * C + B * D
-        val lenSq = C * C + D * D
-        val param = if (lenSq != 0.0) dot / lenSq else -1.0
-
-        return when {
-            param < 0 -> lineStart
-            param > 1 -> lineEnd
-            else -> Position(lineStart.x + param * C, lineStart.y + param * D)
+            deleteStateButton.isDisabled = state.default == true
         }
     }
 
-    fun setState(state: String) {
-        currentState = state
+    private fun addState() {
+        val stateName = "new_state_$stateCount"
+        stateCount++
+        resourceStates.addState(stateName)
+        updateDropdown()
+    }
+
+    private fun updateDropdown() {
+        val stateNames = Array<String>()
+        resourceStates.states.forEach { stateNames.add(it.name) }
+        statesDropDown.items = stateNames
+    }
+
+    override fun openEditor(scene: AnimationScene, content: VisTable) {
+        val idTable = VisTable()
+        idTable.add(VisLabel("Resource ID: "))
+        idTable.add(resourceIdTextField)
+        content.add(idTable).row()
+
+        setState(currentState, scene)
+
+        updateDropdown()
+        statesDropDown.onChange { setState(statesDropDown.selected, scene) }
+
+        val statesTable = VisTable()
+        val statesDropdownTable = VisTable()
+        statesDropdownTable.add(VisLabel("States: "))
+        statesDropdownTable.add(statesDropDown)
+
+        val stateNameTable = VisTable()
+        stateNameTable.add(VisLabel("State Name: "))
+        stateNameTable.add(stateNameField).width(100f).row()
+
+        addImageButton.onClick { AnimationBuilderScreen.imageImporterWindow.toggle() }
+
+        val stateImageTable = VisTable()
+        val imageIds = Array<String>()
+        scene.images.keys.forEach { imageIds.add(it) }
+
+        imagesDropDown.items = imageIds
+
+        stateImageTable.add(VisLabel("State Image: "))
+        stateImageTable.add(imagesDropDown)
+        stateImageTable.add(addImageButton)
+
+        val buttonTable = VisTable()
+        buttonTable.defaults().pad(10f, 5f, 0f, 5f)
+
+        addStateButton.onClick { addState() }
+        updateStateButton.onClick {
+            resourceStates.updateState(currentState, ResourceState(stateNameField.text, imagesDropDown.selected, stateDefaultCheckbox.isChecked))
+            currentState = stateNameField.text
+            updateDropdown()
+        }
+        deleteStateButton.onClick {
+            resourceStates.removeState(currentState)
+            currentState = resourceStates.defaultState.name
+        }
+
+        buttonTable.add(addStateButton)
+        buttonTable.add(updateStateButton)
+        buttonTable.add(deleteStateButton)
+
+        statesTable.add(statesDropdownTable).row()
+        statesTable.add(stateNameTable).row()
+        statesTable.add(stateDefaultCheckbox).row()
+        statesTable.add(stateImageTable).row()
+        statesTable.add(imagePreview).width(100f).height(100f).row()
+        statesTable.add(buttonTable).row()
+        content.add(statesTable).row()
+
+        super.openEditor(scene, content)
+    }
+
+    override fun closeEditor(scene: AnimationScene) {
+        if (id != resourceIdTextField.text) {
+            scene.applyChange(EditResourceSettingsChange(
+                scene, this,
+                id, resourceIdTextField.text
+            ))
+        }
     }
 
     override fun render(scene: AnimationScene) {
@@ -79,60 +152,13 @@ class KSLResource(id: String, position: Position, private val states: List<Resou
         scene.spriteBatch.begin()
         scene.spriteBatch.draw(
             texture,
-            (translatedPosition.x - translatedSize.x / 2).toFloat(),
-            (translatedPosition.y - translatedSize.y / 2).toFloat(),
+            translatedPosition.x.toFloat(),
+            translatedPosition.y.toFloat(),
             translatedSize.x.toFloat(),
             translatedSize.y.toFloat()
         )
         scene.spriteBatch.end()
 
         super.render(scene)
-    }
-
-    override fun pointInside(scene: AnimationScene, point: Position): Boolean {
-        val translatedPosition = scene.worldToScreen(position)
-        val translatedSize = Position(width, height) * scene.screenUnit
-        val halfWidth = translatedSize.x / 2
-        val halfHeight = translatedSize.y / 2
-        return point.x in (translatedPosition.x - halfWidth)..(translatedPosition.x + halfWidth) &&
-            point.y in (translatedPosition.y - halfHeight)..(translatedPosition.y + halfHeight)
-    }
-
-    override fun onMouseDown(scene: AnimationScene, x: Int, y: Int, button: Int, snapToGrid: Boolean): Boolean {
-        val mousePos = Position(x.toDouble(), y.toDouble())
-        if (button == Input.Buttons.LEFT && pointInside(scene, mousePos)) {
-            dragging = true
-            originalPosition = position.copy() // Record starting position for the move command
-            dragOffset = mousePos - scene.worldToScreen(position)
-            return true
-        }
-        return false
-    }
-
-    override fun onMouseMove(scene: AnimationScene, x: Int, y: Int, snapToGrid: Boolean) {
-        if (dragging) {
-            val mousePos = Position(x.toDouble(), y.toDouble())
-            val newScreenPos = mousePos - dragOffset
-            val newWorldPos = scene.screenToWorld(newScreenPos)
-            position.x = if (snapToGrid) round(newWorldPos.x) else newWorldPos.x
-            position.y = if (snapToGrid) round(newWorldPos.y) else newWorldPos.y
-        }
-    }
-
-    override fun onMouseUp(scene: AnimationScene, x: Int, y: Int, button: Int, snapToGrid: Boolean) {
-        if (dragging) {
-            dragging = false
-
-            val resourceScreenPos = scene.worldToScreen(position)
-
-            scene.queues.values.forEach { queue: KSLQueue ->
-                val translatedStart = scene.worldToScreen(queue.startPosition)
-                val translatedEnd = scene.worldToScreen(queue.endPosition)
-                val distance = distancePointToLine(resourceScreenPos, translatedStart, translatedEnd)
-
-            }
-            scene.applyChange(MoveResourceChange(scene, id, originalPosition, position.copy()))
-        }
-
     }
 }
