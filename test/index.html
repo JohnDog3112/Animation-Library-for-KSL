@@ -23,27 +23,8 @@
 
         context.clearRect(0, 0, canvas.width, canvas.height);
 
-        const size = 30, radius = 5;
-        const height = size * Math.sqrt(3) / 2; // Height of an equilateral triangle
-        const ax = 25, ay = 25 + height / 2;
-        const bx = 25 + size, by = 25;
-        const cx = 25 + size, cy = 25 + height;
-
-        context.beginPath();
-        context.moveTo(ax + radius, ay);
-
-        context.lineTo(bx - radius, by);
-        context.quadraticCurveTo(bx, by, bx, by + radius);
-
-        context.lineTo(cx, cy - radius);
-        context.quadraticCurveTo(cx, cy, cx - radius, cy);
-
-        context.lineTo(ax + radius, ay);
-        context.quadraticCurveTo(ax, ay, ax, ay + radius);
-
-        context.closePath();
-        context.fillStyle = "#fff";
-        context.fill();
+        context.fillStyle = '#000'
+        context.fillRect(0, 0, 50, 50)
     </script>
 </body>
 

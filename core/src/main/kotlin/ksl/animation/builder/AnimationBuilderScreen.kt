@@ -11,6 +11,7 @@ import com.kotcrab.vis.ui.widget.MenuBar
 import com.kotcrab.vis.ui.widget.VisLabel
 import com.kotcrab.vis.ui.widget.VisTable
 import com.kotcrab.vis.ui.widget.file.FileChooser
+import ksl.animation.common.renderables.*
 import ksl.animation.viewer.AnimationViewerScreen
 import ktx.actors.onClick
 import ktx.app.KtxGame
@@ -20,13 +21,27 @@ import ktx.scene2d.vis.menu
 import ktx.scene2d.vis.menuItem
 
 class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, InputAdapter() {
+    companion object {
+        lateinit var imageImporterWindow: ImageImporterWindow
+        lateinit var objectTypeEditorWindow: ObjectTypeEditorWindow
+    }
+
     private val stage = Stage(ScreenViewport())
-    private val objectSelector = ObjectSelectorWindow({ type -> animationBuilder.addObject(type) })
-    private val objectEditor = ObjectEditorWindow()
+    private val addObjectWindow = AddObjectWindow({ type -> animationBuilder.addObject(type) })
+    private val objectEditor = ObjectEditorWindow(this)
     private val fileChooser = FileChooser(FileChooser.Mode.OPEN)
-    private var animationBuilder = AnimationBuilder({ renderable -> objectEditor.showObject(renderable) })
+    var animationBuilder = AnimationBuilder({ renderable -> objectEditor.showObject(renderable) })
+
     private var controlPressed = false
-    //Test
+
+    fun removeObject(kslObject: KSLRenderable) {
+        animationBuilder.removeObject(kslObject)
+        objectEditor.showObject(null)
+    }
+
+    fun copyObject(kslObject: KSLRenderable) {
+        animationBuilder.copyObject(kslObject)
+    }
 
     override fun show() {
         val input = InputMultiplexer()
@@ -44,7 +59,13 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
         modeTable.background = VisUI.getSkin().getDrawable("separator-menu")
         modeTable.add(VisLabel("Builder Mode"))
         root.add(modeTable).fillX().row()
-        root.add().expand().fill()
+
+        val windowTable = VisTable()
+        windowTable.add(addObjectWindow)
+        windowTable.add().expandX()
+        windowTable.add(objectEditor)
+
+        root.add(windowTable).expand().fill().row()
 
         val fileMenu = menuBar.menu("File")
         val importItem = fileMenu.menuItem("Import...")
@@ -80,18 +101,42 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
         val showGridLinesItem = viewMenu.menuItem("Toggle Grid Lines...")
         showGridLinesItem.setShortcut(Input.Keys.CONTROL_LEFT, Input.Keys.G)
         showGridLinesItem.onClick {
-            this@AnimationBuilderScreen.animationBuilder.showGridLines = !this@AnimationBuilderScreen.animationBuilder.showGridLines
+            animationBuilder.showGridLines = !animationBuilder.showGridLines
         }
 
         val showIdsItem = viewMenu.menuItem("Toggle ID Rendering...")
         showIdsItem.setShortcut(Input.Keys.CONTROL_LEFT, Input.Keys.I)
         showIdsItem.onClick {
-            this@AnimationBuilderScreen.animationBuilder.showIds = !this@AnimationBuilderScreen.animationBuilder.showIds
+            animationBuilder.showIds = !animationBuilder.showIds
         }
 
+        val windowMenu = menuBar.menu("Window")
+
+        val showAddObjectWindow = windowMenu.menuItem("Toggle Add Object Window...")
+        showAddObjectWindow.onClick {
+            addObjectWindow.toggle()
+        }
+
+        val showObjectEditorWindow = windowMenu.menuItem("Toggle Object Editor Window...")
+        showObjectEditorWindow.onClick {
+            objectEditor.toggle()
+        }
+
+        val showImageImporterWindow = windowMenu.menuItem("Toggle Image Importer Window...")
+        showImageImporterWindow.onClick {
+            imageImporterWindow.toggle()
+        }
+
+        val showObjectTypeEditorWindow = windowMenu.menuItem("Toggle Object Type Editor Window...")
+        showObjectTypeEditorWindow.onClick {
+            objectTypeEditorWindow.toggle()
+        }
+
+        imageImporterWindow = ImageImporterWindow(animationBuilder)
+        objectTypeEditorWindow = ObjectTypeEditorWindow(animationBuilder)
+        stage.addActor(imageImporterWindow)
+        stage.addActor(objectTypeEditorWindow)
         stage.addActor(root)
-        stage.addActor(objectSelector)
-        stage.addActor(objectEditor)
     }
 
     override fun render(delta: Float) {

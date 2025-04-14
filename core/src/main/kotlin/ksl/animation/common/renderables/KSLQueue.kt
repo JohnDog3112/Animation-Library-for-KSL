@@ -7,12 +7,14 @@ import com.kotcrab.vis.ui.widget.VisTable
 import com.kotcrab.vis.ui.widget.VisTextField
 import com.kotcrab.vis.ui.widget.spinner.SimpleFloatSpinnerModel
 import com.kotcrab.vis.ui.widget.spinner.Spinner
-import ksl.animation.builder.ObjectEditorWindow
+import ksl.animation.builder.changes.EditQueueSettingsChange
+import ksl.animation.builder.changes.EditVariableSettingsChange
 import ksl.animation.builder.changes.MoveQueueChange
 import ksl.animation.common.AnimationScene
 import ksl.animation.setup.KSLAnimationObject
 import ksl.animation.util.Position
 import ktx.actors.onChange
+import ktx.actors.onExit
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
@@ -20,6 +22,10 @@ import kotlin.math.sqrt
 
 class KSLQueue(id: String, var startPosition: Position, var endPosition: Position, var scale: Double = 1.0) : KSLRenderable(id, (startPosition + endPosition) * 0.5) {
     constructor(queueObject: KSLAnimationObject.Queue) : this(queueObject.id, queueObject.startPosition, queueObject.endPosition, queueObject.scale)
+
+    private val queueIdTextField = VisTextField(id)
+    private val scaleModel = SimpleFloatSpinnerModel(scale.toFloat(), 0.5f, 5f, 0.1f)
+    private val scaleSpinner = Spinner("Scale", scaleModel)
 
     fun serialize(): KSLAnimationObject.Queue {
         return KSLAnimationObject.Queue(
@@ -29,6 +35,7 @@ class KSLQueue(id: String, var startPosition: Position, var endPosition: Positio
             this.scale
         )
     }
+
     companion object {
         const val START_POINT = "START"
         const val END_POINT = "END"
@@ -51,20 +58,30 @@ class KSLQueue(id: String, var startPosition: Position, var endPosition: Positio
         kslObject.inQueue = false
     }
 
-    override fun displaySettings(content: VisTable) {
-        val queueIdTextField = VisTextField(id)
-        queueIdTextField.onChange { id = queueIdTextField.text }
+    override fun openEditor(scene: AnimationScene, content: VisTable) {
+        queueIdTextField.text = id
+        val idTable = VisTable()
+        idTable.add(VisLabel("Variable ID: "))
+        idTable.add(queueIdTextField)
+        content.add(idTable).row()
 
-        val speedModel = SimpleFloatSpinnerModel(scale.toFloat(), 0.5f, 5f, 0.1f)
-        val spinner = Spinner("Scale", speedModel)
-        spinner.onChange { scale = speedModel.value.toDouble() }
+        scaleModel.value = scale.toFloat()
+        content.add(scaleSpinner).row()
 
-        content.add(VisLabel("Queue ID "))
-        content.add(queueIdTextField)
-        content.row()
-        content.add(spinner)
-        content.pack()
-        super.displaySettings(content)
+        super.openEditor(scene, content)
+    }
+
+    override fun closeEditor(scene: AnimationScene) {
+        if (
+            id != queueIdTextField.text ||
+            scale != scaleModel.value.toDouble()
+        ) {
+            scene.applyChange(EditQueueSettingsChange(
+                scene, this,
+                id, queueIdTextField.text,
+                scale, scaleModel.value.toDouble()
+            ))
+        }
     }
 
     override fun pointInside(scene: AnimationScene, point: Position): Boolean {
