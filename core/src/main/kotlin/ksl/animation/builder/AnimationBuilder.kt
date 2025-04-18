@@ -1,6 +1,7 @@
 package ksl.animation.builder
 
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import ksl.animation.builder.changes.*
@@ -8,6 +9,7 @@ import ksl.animation.common.AnimationScene
 import ksl.animation.common.renderables.*
 import ksl.animation.setup.KSLAnimation
 import ksl.animation.setup.KSLAnimationObject
+import ksl.animation.setup.ResourceState
 import ksl.animation.setup.ResourceStates
 import ksl.animation.util.Position
 import java.util.*
@@ -83,6 +85,7 @@ class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) ->
                 addRenderable(KSLVariable(it))
             }
         } else {
+            var position = 0.0
             // load base objects
             animation.objects.filterIsInstance<KSLAnimationObject.ObjectType>().forEach {
                 objectTypes[it.id] = it
@@ -90,26 +93,33 @@ class AnimationBuilder(private val onObjectClick: (kslObject: KSLRenderable?) ->
 
             // load objects
             animation.objects.filterIsInstance<KSLAnimationObject.Object>().forEach {
-                addRenderable(KSLObject(it))
+                addRenderable(KSLObject(it.id, Position(0.0, position), "default_object_type"))
+                position++
             }
 
             // load stations
             animation.objects.filterIsInstance<KSLAnimationObject.Station>().forEach {
-                addRenderable(KSLStation(it))
+                addRenderable(KSLStation(it.id, Position(0.0, position)))
+                position++
             }
 
             // load queues
             animation.objects.filterIsInstance<KSLAnimationObject.Queue>().forEach {
-                addRenderable(KSLQueue(it))
+                addRenderable(KSLQueue(it.id, Position(-1.0, position), Position(1.0, position)))
+                position++
             }
 
             // load resources
             animation.objects.filterIsInstance<KSLAnimationObject.Resource>().forEach {
-                addRenderable(KSLResource(it))
+                val states = ArrayList<ResourceState>()
+                states.add(ResourceState("default_state", "default_resource", true))
+                addRenderable(KSLResource(it.id, Position(0.0, 0.0), states))
+                position++
             }
 
             animation.objects.filterIsInstance<KSLAnimationObject.Variable>().forEach {
-                addRenderable(KSLVariable(it))
+                addRenderable(KSLVariable(it.id, Position(-1.0, position), 2.0, 1.0, "Variable", 2.0, 2, Color.BLACK))
+                position++
             }
         }
     }

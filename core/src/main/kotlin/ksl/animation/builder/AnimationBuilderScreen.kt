@@ -38,7 +38,7 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
     companion object {
         lateinit var imageImporterWindow: ImageImporterWindow
         lateinit var objectTypeEditorWindow: ObjectTypeEditorWindow
-        data class SaveInfo(val pathStr: String, val simFileStr: String)
+        data class SaveInfo(val pathStr: String, var simFileStr: String)
     }
 
     private val stage = Stage(ScreenViewport())
@@ -88,6 +88,7 @@ class AnimationBuilderScreen(private val game: KtxGame<KtxScreen>) : KtxScreen, 
         loadingDialog.show(stage)
         animationBuilder.loadAnimationSetup(parseJsonToAnimation(setupFile))
         loadingDialog.hide()
+        saveInfo?.simFileStr = simFile
     }
 
     private var saveInfo: SaveInfo? = null

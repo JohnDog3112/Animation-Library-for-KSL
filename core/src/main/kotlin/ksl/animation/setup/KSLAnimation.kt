@@ -14,7 +14,7 @@ data class KSLAnimation(
 sealed class KSLAnimationObject {
     @Serializable
     @SerialName("image")
-    data class Image(val id: String, val data: String) : KSLAnimationObject()
+    data class Image(val id: String, val data: String = "") : KSLAnimationObject()
 
     @Serializable
     @SerialName("queue")
@@ -22,15 +22,15 @@ sealed class KSLAnimationObject {
 
     @Serializable
     @SerialName("resource")
-    data class Resource(val id: String, val states: ArrayList<ResourceState>, val position: Position = Position(0.0, 0.0), val width: Double = 1.0, val height: Double = 1.0) : KSLAnimationObject()
+    data class Resource(val id: String, val states: ArrayList<ResourceState> = ArrayList(), val position: Position = Position(0.0, 0.0), val width: Double = 1.0, val height: Double = 1.0) : KSLAnimationObject()
 
     @Serializable
     @SerialName("object_type")
-    data class ObjectType(val id: String, var image: String) : KSLAnimationObject()
+    data class ObjectType(val id: String, var image: String = "default_object_type") : KSLAnimationObject()
 
     @Serializable
     @SerialName("object")
-    data class Object(val id: String, val objectType: String, val position: Position = Position(0.0, 0.0), val width: Double = 1.0, val height: Double = 1.0) : KSLAnimationObject()
+    data class Object(val id: String, val objectType: String = "default_object_type", val position: Position = Position(0.0, 0.0), val width: Double = 1.0, val height: Double = 1.0) : KSLAnimationObject()
 
     @Serializable
     @SerialName("station")

@@ -102,10 +102,12 @@ class ObjectTypeEditorWindow(private val builder: AnimationBuilder) : VisWindow(
         }
 
         updateIdButton.onClick {
-            builder.objectTypes[objectIdTextField.text] = builder.objectTypes[currentObjectTypeId]!!
-            builder.objectTypes.remove(currentObjectTypeId)
-            loadObjectType(objectIdTextField.text)
-            updateObjectTypes()
+            if (objectIdTextField.text != currentObjectTypeId) {
+                builder.objectTypes[objectIdTextField.text] = KSLAnimationObject.ObjectType(objectIdTextField.text, builder.objectTypes[currentObjectTypeId]?.image!!)
+                builder.objectTypes.remove(currentObjectTypeId)
+                loadObjectType(objectIdTextField.text)
+                updateObjectTypes()
+            }
         }
 
         deleteObjectTypeButton.onClick {
@@ -145,6 +147,9 @@ class ObjectTypeEditorWindow(private val builder: AnimationBuilder) : VisWindow(
 
         val imageIds = Array<String>()
         builder.images.keys.forEach { imageIds.add(it) }
+
+        centerWindow()
+        updateObjectTypes()
 
         imageDropDown.selected = builder.objectTypes[currentObjectTypeId]?.image
         imageDropDown.items = imageIds
